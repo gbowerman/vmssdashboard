@@ -1,6 +1,9 @@
 # Application files
 vmssconfig.json
 
+# Python cache
+__pycache__
+
 # Windows image file caches
 Thumbs.db
 ehthumbs.db
