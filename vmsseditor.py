@@ -228,6 +228,10 @@ vmtext = tk.Entry(vmframe, width=7)
 reimagebtn = tk.Button(vmframe, text='Reimage', command=reimagevm, width=btnwidthud)
 vmupgradebtn = tk.Button(vmframe, text='Upgrade', command=upgradevm, width=btnwidthud)
 vmdeletebtn = tk.Button(vmframe, text='Delete', command=deletevm, width=btnwidthud)
+vmstartbtn = tk.Button(vmframe, text='Start', command=startvm, width=btnwidthud)
+vmrestartbtn = tk.Button(vmframe, text='Restart', command=restartvm, width=btnwidthud)
+vmdeallocbtn = tk.Button(vmframe, text='Dealloc', command=deallocvm, width=btnwidthud)
+vmpoweroffbtn = tk.Button(vmframe, text='Power off', command=poweroffvm, width=btnwidthud)
 vmframe.pack()
 
 baseframe.pack()
@@ -319,6 +323,10 @@ def vmssdetails():
     reimagebtn.grid(row=0, column=2, sticky=tk.W)
     vmupgradebtn.grid(row=0, column=3, sticky=tk.W)
     vmdeletebtn.grid(row=0, column=4, sticky=tk.W)
+    vmstartbtn.grid(row=1, column=1, sticky=tk.W)
+    vmrestartbtn.grid(row=1, column=2, sticky=tk.W)
+    vmpoweroffbtn.grid(row=1, column=3, sticky=tk.W)
+    vmdeallocbtn.grid(row=1, column=4, sticky=tk.W)
     root.mainloop()
 
 
