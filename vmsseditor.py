@@ -192,6 +192,12 @@ baseframe = tk.Frame(root)
 topframe.pack()
 middleframe.pack()
 udframe.pack()
+# UD operations - UD frame
+udlabel = tk.Label(udframe, text='UD:')
+udoption = tk.OptionMenu(udframe, selectedud, '0', '1', '2', '3', '4')
+upgradebtm = tk.Button(udframe, text='Upgrade', command=upgradeud, width=btnwidthud)
+startbtmud = tk.Button(udframe, text='Start', command=startud, width=btnwidthud)
+powerbtmud = tk.Button(udframe, text='Power off', command=powerud, width=btnwidthud)
 # VM operations - VM frame
 vmlabel = tk.Label(vmframe, text='VM:')
 vmtext = tk.Entry(vmframe, width=7)
@@ -199,12 +205,6 @@ reimagebtn = tk.Button(vmframe, text='Reimage', command=reimagevm, width=btnwidt
 vmupgradebtn = tk.Button(vmframe, text='Upgrade', command=upgradevm, width=btnwidthud)
 vmdeletebtn = tk.Button(vmframe, text='Delete', command=deletevm, width=btnwidthud)
 vmframe.pack()
-# UD operations - UD frame
-udlabel = tk.Label(udframe, text='UD:')
-udoption = tk.OptionMenu(udframe, selectedud, '0', '1', '2', '3', '4')
-upgradebtm = tk.Button(udframe, text='Upgrade', command=upgradeud, width=btnwidthud)
-startbtmud = tk.Button(udframe, text='Start', command=startud, width=btnwidthud)
-powerbtmud = tk.Button(udframe, text='Power off', command=powerud, width=btnwidthud)
 
 baseframe.pack()
 #vmsstext = tk.Entry(topframe, width=20)
