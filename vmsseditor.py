@@ -168,6 +168,36 @@ def deletevm():
     current_vmss.deletevm(vmstring)
     statusmsg(current_vmss.status)
 
+def deletevm():
+    vmid = vmtext.get()
+    vmstring = '["' + vmid + '"]'
+    current_vmss.deletevm(vmstring)
+    statusmsg(current_vmss.status)
+
+def startvm():
+    vmid = vmtext.get()
+    vmstring = '["' + vmid + '"]'
+    current_vmss.startvm(vmstring)
+    statusmsg(current_vmss.status)
+
+def restartvm():
+    vmid = vmtext.get()
+    vmstring = '["' + vmid + '"]'
+    current_vmss.restartvm(vmstring)
+    statusmsg(current_vmss.status)
+
+def deallocvm():
+    vmid = vmtext.get()
+    vmstring = '["' + vmid + '"]'
+    current_vmss.deallocvm(vmstring)
+    statusmsg(current_vmss.status)
+
+def poweroffvm():
+    vmid = vmtext.get()
+    vmstring = '["' + vmid + '"]'
+    current_vmss.poweroffvm(vmstring)
+    statusmsg(current_vmss.status)
+
 # begin tkinter components
 btnwidth = 10
 btnwidthud = 10
