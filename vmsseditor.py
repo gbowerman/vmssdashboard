@@ -38,6 +38,7 @@ def subidkeepalive():
     while True:
         time.sleep(2000)
         sub.auth()
+        current_vmss.update_token(sub.access_token)
 
 
 # start timer thread
@@ -150,29 +151,22 @@ def upgradeud():
 
 
 def reimagevm():
-    vmssname = current_vmss.name
     vmid = vmtext.get()
     vmstring = '["' + vmid + '"]'
-    result = azurerm.reimage_vmss_vms(current_vmss.access_token, current_vmss.sub_id, current_vmss.rgname,
-                                      vmssname, vmstring)
-    statusmsg(result)
-    # displayvmss()
+    current_vmss.reimagevm(vmstring)
+    statusmsg(current_vmss.status)
 
 def upgradevm():
-    vmssname = current_vmss.name
     vmid = vmtext.get()
     vmstring = '["' + vmid + '"]'
-    result = azurerm.upgrade_vmss_vms(current_vmss.access_token, current_vmss.sub_id, current_vmss.rgname,
-                                      vmssname, vmstring)
-    statusmsg(result)
+    current_vmss.upgradevm(vmstring)
+    statusmsg(current_vmss.status)
 
 def deletevm():
-    vmssname = current_vmss.name
     vmid = vmtext.get()
     vmstring = '["' + vmid + '"]'
-    result = azurerm.delete_vmss_vms(current_vmss.access_token, current_vmss.sub_id, current_vmss.rgname,
-                                     vmssname, vmstring)
-    statusmsg(result)
+    current_vmss.deletevm(vmstring)
+    statusmsg(current_vmss.status)
 
 # begin tkinter components
 btnwidth = 10

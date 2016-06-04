@@ -66,6 +66,7 @@ class vmss():
         self.vm_instance_view = \
             azurerm.list_vmss_vm_instance_view(self.access_token, self.sub_id, self.rgname, self.name)
 
+    # operations on individual VMs or groups of VMs in a scale set
     def reimagevm(self, vmstring):
         result = azurerm.reimage_vmss_vms(self.access_token, self.sub_id, self.rgname, self.name, vmstring)
         self.status = result
