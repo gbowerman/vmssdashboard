@@ -285,7 +285,7 @@ def displayvmss(vmssname):
     statusmsg(current_vmss.status)
 
 def scalevmss():
-    newcapacity = capacitytext.get()
+    newcapacity = int(capacitytext.get())
     current_vmss.scale(newcapacity)
     statusmsg(current_vmss.status)
     #displayvmss()
