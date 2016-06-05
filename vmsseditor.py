@@ -25,14 +25,6 @@ except FileNotFoundError:
 sub = subscription.subscription(configData['tenantId'], configData['appId'], configData['appSecret'], configData['subscriptionId'])
 current_vmss = None
 
-# vmss property containers
-vmss_properties = dict()
-ud0_list = []
-ud1_list = []
-ud2_list = []
-ud3_list = []
-ud4_list = []
-
 # thread to keep access token alive
 def subidkeepalive():
     while True:
@@ -45,109 +37,61 @@ def subidkeepalive():
 timer_thread = threading.Thread(target=subidkeepalive, args=())
 timer_thread.start()
 
-def get_power_state(statuses):
-    for status in statuses:
-        if status['code'].startswith('Power'):
-            return status['code'][11:]
 
+def assign_color_to_power_state(powerstate):
+    if powerstate == 'running':
+        return 'green'
+    elif powerstate == 'stopped' or powerstate == 'deallocated':
+        return 'red'
+    else:
+        return 'orange'
 
-# draw a heat map for the VMSS VMs
-# to do: find a more pythonic way to represent 5 sets of UDs and associated variables
+# draw a heat map for the VMSS VMs - uses the set_domain_lists() functon from the vmss class
 def draw_vms(vmssinstances):
-    global ud0_list
-    global ud1_list
-    global ud2_list
-    global ud3_list
-    global ud4_list
-    xdelta0 = 0
-    xdelta1 = 0
-    xdelta2 = 0
-    xdelta3 = 0
-    xdelta4 = 0
-    x1 = 20
-    x2 = 30
+    ydelta = 0
+    xdelta = 0
+    xval = 20
+    yval = 10
+    diameter = 15
     vmcanvas.delete("all")
-    del ud0_list[:]
-    del ud1_list[:]
-    del ud2_list[:]
-    del ud3_list[:]
-    del ud4_list[:]
-    for instance in vmssinstances['value']:
-        try:
-            ud = instance['properties']['instanceView']['platformUpdateDomain']
-            powerstate = get_power_state(instance['properties']['instanceView']['statuses'])
-        except KeyError:
-            continue
-        if powerstate == 'running':
-            statuscolor = 'green'
-        elif powerstate == 'stopped' or powerstate == 'deallocated':
-            statuscolor = 'red'
-        else:
-            statuscolor = 'orange'
-        if ud == 0:
-            ud0_list.append(instance)
-            vmcanvas.create_oval(x1 + xdelta0, 15, x2 + xdelta0, 25, fill=statuscolor)
-            xdelta0 += 15
-        elif ud == 1:
-            ud1_list.append(instance)
-            vmcanvas.create_oval(x1 + xdelta1, 30, x2 + xdelta1, 40, fill=statuscolor)
-            xdelta1 += 15
-        elif ud == 2:
-            ud2_list.append(instance)
-            vmcanvas.create_oval(x1 + xdelta2, 45, x2 + xdelta2, 55, fill=statuscolor)
-            xdelta2 += 15
-        elif ud == 3:
-            ud3_list.append(instance)
-            vmcanvas.create_oval(x1 + xdelta3, 60, x2 + xdelta3, 70, fill=statuscolor)
-            xdelta3 += 15
-        elif ud == 4:
-            ud4_list.append(instance)
-            vmcanvas.create_oval(x1 + xdelta4, 75, x2 + xdelta4, 85, fill=statuscolor)
-            xdelta4 += 15
+    #current_vmss.clear_domain_lists()
+    current_vmss.set_domain_lists()
+    for domain in range(5):
+        for entry in current_vmss.fd_dict[domain]:
+            powerstate = entry[1] # and entry[0] = instance id, domain = fd number
+            statuscolor = assign_color_to_power_state(powerstate)
+            vmcanvas.create_oval(xval + xdelta, yval, xval + xdelta + diameter, yval + diameter, fill=statuscolor)
+            xdelta += 20
+        xdelta = 0
+        yval += 20
+
 
 def getuds():
-    ud = selectedud.get()
+    ud = int(selectedud.get())
     udinstancelist = []
+    # print(json.dumps(current_vmss.ud_dict))
+    for entry in current_vmss.ud_dict[ud]:
+        udinstancelist.append(entry[0])    # entry[0] is the instance id
     # build list of UDs
-    if ud == '0':
-        for instance in ud0_list:
-            udinstancelist.append(instance['instanceId'])
-    elif ud == '1':
-        for instance in ud1_list:
-            udinstancelist.append(instance['instanceId'])
-    elif ud == '2':
-        for instance in ud2_list:
-            udinstancelist.append(instance['instanceId'])
-    elif ud == '3':
-        for instance in ud3_list:
-            udinstancelist.append(instance['instanceId'])
-    elif ud == '4':
-        for instance in ud4_list:
-            udinstancelist.append(instance['instanceId'])
     return udinstancelist
 
 
 def startud():
-    vmssname = current_vmss.name
     udinstancelist = getuds()
-    result = azurerm.start_vmss_vms(current_vmss.access_token, current_vmss.sub_id, current_vmss.rgname, vmssname, json.dumps(udinstancelist))
-    statusmsg(result)
+    current_vmss.startvm(json.dumps(udinstancelist))
+    statusmsg(current_vmss.status)
 
 
 def powerud():
-    vmssname = current_vmss.name
     udinstancelist = getuds()
-    result = azurerm.poweroff_vmss_vms(current_vmss.access_token, current_vmss.sub_id, current_vmss.rgname, vmssname,
-                                       json.dumps(udinstancelist))
-    statusmsg(result)
+    current_vmss.poweroffvm(json.dumps(udinstancelist))
+    statusmsg(current_vmss.status)
 
 
 def upgradeud():
-    vmssname = current_vmss.name
     udinstancelist = getuds()
-    result = azurerm.upgrade_vmss_vms(current_vmss.access_token, current_vmss.sub_id, current_vmss.rgname, vmssname,
-                                      json.dumps(udinstancelist))
-    statusmsg(result)
+    current_vmss.upgradevm(json.dumps(udinstancelist))
+    statusmsg(current_vmss.status)
 
 
 def reimagevm():
@@ -199,18 +143,18 @@ def poweroffvm():
     statusmsg(current_vmss.status)
 
 # begin tkinter components
-btnwidth = 10
-btnwidthud = 10
+btnwidth = 12
+btnwidthud = 12
 root = tk.Tk()  # Makes the window
 root.wm_title("VM Scale Set Editor")
-root.geometry('350x350')
+root.geometry('420x350')
 root.wm_iconbitmap('vm.ico')
 topframe = tk.Frame(root)
 middleframe = tk.Frame(root)
 udframe = tk.Frame(root)
 selectedud = tk.StringVar()
-heatmaplabel = tk.Label(middleframe, text='VM Heatmap', width=45, anchor=tk.W)
-vmcanvas = tk.Canvas(middleframe, height=100, width=350)
+heatmaplabel = tk.Label(middleframe, text='VM Heatmap - 1 row = 1 FD', width=55, anchor=tk.W)
+vmcanvas = tk.Canvas(middleframe, height=110, width=420)
 vmframe = tk.Frame(root)
 baseframe = tk.Frame(root)
 topframe.pack()
@@ -219,12 +163,13 @@ udframe.pack()
 # UD operations - UD frame
 udlabel = tk.Label(udframe, text='UD:')
 udoption = tk.OptionMenu(udframe, selectedud, '0', '1', '2', '3', '4')
+udoption.config(width=9)
 upgradebtm = tk.Button(udframe, text='Upgrade', command=upgradeud, width=btnwidthud)
 startbtmud = tk.Button(udframe, text='Start', command=startud, width=btnwidthud)
 powerbtmud = tk.Button(udframe, text='Power off', command=powerud, width=btnwidthud)
 # VM operations - VM frame
 vmlabel = tk.Label(vmframe, text='VM:')
-vmtext = tk.Entry(vmframe, width=7)
+vmtext = tk.Entry(vmframe, width=15)
 reimagebtn = tk.Button(vmframe, text='Reimage', command=reimagevm, width=btnwidthud)
 vmupgradebtn = tk.Button(vmframe, text='Upgrade', command=upgradevm, width=btnwidthud)
 vmdeletebtn = tk.Button(vmframe, text='Delete', command=deletevm, width=btnwidthud)
@@ -235,10 +180,10 @@ vmpoweroffbtn = tk.Button(vmframe, text='Power off', command=poweroffvm, width=b
 vmframe.pack()
 
 baseframe.pack()
-#vmsstext = tk.Entry(topframe, width=20)
+
 versiontext = tk.Entry(topframe, width=btnwidth)
 capacitytext = tk.Entry(topframe, width=btnwidth)
-statustext = tk.Text(baseframe, height=1, width=40)
+statustext = tk.Text(baseframe, height=1, width=50)
 
 def statusmsg(statusstring):
     if statustext.get(1.0, tk.END):
@@ -304,7 +249,7 @@ def poweroffvmss():
     statusmsg(current_vmss.status)
 
 def deallocvmss():
-    current_vmss.stopdealloc()
+    current_vmss.dealloc()
     statusmsg(current_vmss.status)
 
 def vmssdetails():
@@ -341,6 +286,7 @@ displayvmss(vmsslist[0])
 
 # VMSS picker - row 0
 vmsslistoption = tk.OptionMenu(topframe, selectedvmss, *vmsslist, command=displayvmss)
+vmsslistoption.config(width=9)
 vmsslistoption.grid(row=0, column=0, sticky=tk.W)
 
 root.mainloop()

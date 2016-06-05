@@ -94,3 +94,30 @@ class vmss():
     def poweroffvm(self, vmstring):
         result = azurerm.poweroff_vmss_vms(self.access_token, self.sub_id, self.rgname, self.name, vmstring)
         self.status = result
+
+    def get_power_state(self, statuses):
+        for status in statuses:
+            if status['code'].startswith('Power'):
+                return status['code'][11:]
+
+    # create a list of VMs in the scale set by fault domain and update domain
+    def set_domain_lists(self):
+        self.fd_dict = {f: [] for f in range(5)}
+        self.ud_dict = {u: [] for u in range(5)}
+        for instance in self.vm_instance_view['value']:
+            try:
+                instanceId = instance['instanceId']
+                ud = instance['properties']['instanceView']['platformUpdateDomain']
+                fd = instance['properties']['instanceView']['platformFaultDomain']
+                power_state = self.get_power_state(instance['properties']['instanceView']['statuses'])
+                self.ud_dict[ud].append([instanceId, power_state])
+                self.fd_dict[fd].append([instanceId, power_state])
+            except KeyError:
+                print('KeyError: ' + json.dumps(instance))
+
+'''
+    def clear_domain_lists(self):
+        for i in range(5):
+            del self.fd_dict[i][:]
+            del self.ud_dict[i][:]
+ '''
