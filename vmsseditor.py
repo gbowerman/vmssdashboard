@@ -58,12 +58,14 @@ def draw_vms(vmssinstances):
     current_vmss.set_domain_lists()
     for domain in range(5):
         for entry in current_vmss.fd_dict[domain]:
-            powerstate = entry[1] # and entry[0] = instance id, domain = fd number
+            instance_id = entry[0]
+            powerstate = entry[1] # and domain = fd number
             statuscolor = assign_color_to_power_state(powerstate)
             vmcanvas.create_oval(xval + xdelta, yval, xval + xdelta + diameter, yval + diameter, fill=statuscolor)
+            vmcanvas.create_text(xval + xdelta + 7, yval + 22, text=instance_id)
             xdelta += 20
         xdelta = 0
-        yval += 20
+        yval += 30
 
 
 def getuds():
@@ -147,14 +149,14 @@ btnwidth = 12
 btnwidthud = 12
 root = tk.Tk()  # Makes the window
 root.wm_title("VM Scale Set Editor")
-root.geometry('420x350')
+root.geometry('420x410')
 root.wm_iconbitmap('vm.ico')
 topframe = tk.Frame(root)
 middleframe = tk.Frame(root)
 udframe = tk.Frame(root)
 selectedud = tk.StringVar()
 heatmaplabel = tk.Label(middleframe, text='VM Heatmap - 1 row = 1 FD', width=55, anchor=tk.W)
-vmcanvas = tk.Canvas(middleframe, height=110, width=420)
+vmcanvas = tk.Canvas(middleframe, height=170, width=420)
 vmframe = tk.Frame(root)
 baseframe = tk.Frame(root)
 topframe.pack()
