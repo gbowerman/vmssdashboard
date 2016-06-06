@@ -25,6 +25,20 @@ VMSS Editor is a Python/Tkinter script to manage VM Scale Sets. You can use it t
   5. Put in values for your application and subscription in vmssconfig.json.
   7. Run: python vmsseditor.py
   
+### Using vmssdashboard and vmsseditor
+
+To use these apps (and in general to access Azure Resource Manager from a program without going through 2 factor
+authentication) you need to register your application with Azure and
+create a "Service Principal" (an application equivalent of a
+user). Once you've done this you'll have 3 pieces of information: A
+tenant ID, an application ID, and an application secret. You will use
+these to populate the vmssconfig.json file. For more information on
+how to get this information go here: [Authenticating a service
+principal with Azure Resource Manager][service-principle]. See also:
+[Azure Resource Manager REST calls from Python][python-auth].
+
+[service-principle]: https://azure.microsoft.com/en-us/documentation/articles/resource-group-authenticate-service-principal/
+[python-auth]: https://msftstack.wordpress.com/2016/01/05/azure-resource-manager-authentication-with-python
 
 ## VMSS Dashboard
 Dashboard to show Azure VM Scale Set status and properties. 
@@ -46,17 +60,3 @@ Also note: If you like VMSS Dashboards, make sure you also take a look at [ASCii
   6. Put in values for your application, along with your resource group name, and VM Scale Set name in vmssconfig.json.
   7. Run: python vmssdashboard.py
 
-### Using vmssdashboard and vmsseditor
-
-To use these apps (and in general to access Azure Resource Manager from a program without going through 2 factor
-authentication) you need to register your application with Azure and
-create a "Service Principal" (an application equivalent of a
-user). Once you've done this you'll have 3 pieces of information: A
-tenant ID, an application ID, and an application secret. You will use
-these to populate the vmssconfig.json file. For more information on
-how to get this information go here: [Authenticating a service
-principal with Azure Resource Manager][service-principle]. See also:
-[Azure Resource Manager REST calls from Python][python-auth].
-
-[service-principle]: https://azure.microsoft.com/en-us/documentation/articles/resource-group-authenticate-service-principal/
-[python-auth]: https://msftstack.wordpress.com/2016/01/05/azure-resource-manager-authentication-with-python

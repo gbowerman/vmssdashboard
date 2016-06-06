@@ -56,12 +56,14 @@ def draw_vms(vmssinstances):
     vmcanvas.delete("all")
     #current_vmss.clear_domain_lists()
     current_vmss.set_domain_lists()
-    for domain in range(5):
-        for entry in current_vmss.fd_dict[domain]:
+    for faultdomain in range(5):
+        for entry in current_vmss.fd_dict[faultdomain]:
             instance_id = entry[0]
-            powerstate = entry[1] # and domain = fd number
+            powerstate = entry[1]
             statuscolor = assign_color_to_power_state(powerstate)
+            # colored circle represents machine power state
             vmcanvas.create_oval(xval + xdelta, yval, xval + xdelta + diameter, yval + diameter, fill=statuscolor)
+            # print VM ID under each circle
             vmcanvas.create_text(xval + xdelta + 7, yval + 22, text=instance_id)
             xdelta += 20
         xdelta = 0
