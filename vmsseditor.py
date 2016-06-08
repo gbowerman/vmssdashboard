@@ -116,12 +116,6 @@ def deletevm():
     current_vmss.deletevm(vmstring)
     statusmsg(current_vmss.status)
 
-def deletevm():
-    vmid = vmtext.get()
-    vmstring = '["' + vmid + '"]'
-    current_vmss.deletevm(vmstring)
-    statusmsg(current_vmss.status)
-
 def startvm():
     vmid = vmtext.get()
     vmstring = '["' + vmid + '"]'
