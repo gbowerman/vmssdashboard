@@ -1,5 +1,7 @@
-import azurerm
 import json
+
+import azurerm
+
 
 # Azure subscription class
 class subscription():
@@ -31,9 +33,3 @@ class subscription():
         except KeyError:
             self.status = 'KeyError: azurerm.list_vmss_sub() returned: ' + json.dumps(vmss_sub_list)
         return self.vmsslist
-
-
-
-
-
-

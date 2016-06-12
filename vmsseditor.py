@@ -5,14 +5,14 @@ Description: Graphical dashboard to show and set Azure VM Scale Set properties
 License: MIT (see LICENSE.txt file for details)
 """
 
-import azurerm
 import json
 import sys
 import threading
 import time
 import tkinter as tk
-import vmss
+
 import subscription
+import vmss
 
 # Load Azure app defaults
 try:
@@ -22,8 +22,10 @@ except FileNotFoundError:
     print("Error: Expecting vmssconfig.json in current folder")
     sys.exit()
 
-sub = subscription.subscription(configData['tenantId'], configData['appId'], configData['appSecret'], configData['subscriptionId'])
+sub = subscription.subscription(configData['tenantId'], configData['appId'], configData['appSecret'],
+                                configData['subscriptionId'])
 current_vmss = None
+refresh_thread_running = False
 
 # thread to keep access token alive
 def subidkeepalive():
@@ -32,10 +34,25 @@ def subidkeepalive():
         sub.auth()
         current_vmss.update_token(sub.access_token)
 
+# thread to refresh details until provisioning is complete
+def refresh_loop():
+    global refresh_thread_running
+    while True:
+        while (refresh_thread_running == True):
+            current_vmss.refresh_model()
+            if current_vmss.status == 'Succeeded':
+                refresh_thread_running = False
+            time.sleep(10)
+            vmssdetails()
+        time.sleep(10)
 
 # start timer thread
 timer_thread = threading.Thread(target=subidkeepalive, args=())
 timer_thread.start()
+
+# start refresh thread
+refresh_thread = threading.Thread(target=refresh_loop, args=())
+refresh_thread.start()
 
 
 def assign_color_to_power_state(powerstate):
@@ -46,6 +63,7 @@ def assign_color_to_power_state(powerstate):
     else:
         return 'orange'
 
+
 # draw a heat map for the VMSS VMs - uses the set_domain_lists() functon from the vmss class
 def draw_vms(vmssinstances):
     ydelta = 0
@@ -54,7 +72,7 @@ def draw_vms(vmssinstances):
     yval = 10
     diameter = 15
     vmcanvas.delete("all")
-    #current_vmss.clear_domain_lists()
+    # current_vmss.clear_domain_lists()
     current_vmss.set_domain_lists()
     for faultdomain in range(5):
         for entry in current_vmss.fd_dict[faultdomain]:
@@ -75,7 +93,7 @@ def getuds():
     udinstancelist = []
     # print(json.dumps(current_vmss.ud_dict))
     for entry in current_vmss.ud_dict[ud]:
-        udinstancelist.append(entry[0])    # entry[0] is the instance id
+        udinstancelist.append(entry[0])  # entry[0] is the instance id
     # build list of UDs
     return udinstancelist
 
@@ -104,11 +122,13 @@ def reimagevm():
     current_vmss.reimagevm(vmstring)
     statusmsg(current_vmss.status)
 
+
 def upgradevm():
     vmid = vmtext.get()
     vmstring = '["' + vmid + '"]'
     current_vmss.upgradevm(vmstring)
     statusmsg(current_vmss.status)
+
 
 def deletevm():
     vmid = vmtext.get()
@@ -116,11 +136,13 @@ def deletevm():
     current_vmss.deletevm(vmstring)
     statusmsg(current_vmss.status)
 
+
 def startvm():
     vmid = vmtext.get()
     vmstring = '["' + vmid + '"]'
     current_vmss.startvm(vmstring)
     statusmsg(current_vmss.status)
+
 
 def restartvm():
     vmid = vmtext.get()
@@ -128,17 +150,20 @@ def restartvm():
     current_vmss.restartvm(vmstring)
     statusmsg(current_vmss.status)
 
+
 def deallocvm():
     vmid = vmtext.get()
     vmstring = '["' + vmid + '"]'
     current_vmss.deallocvm(vmstring)
     statusmsg(current_vmss.status)
 
+
 def poweroffvm():
     vmid = vmtext.get()
     vmstring = '["' + vmid + '"]'
     current_vmss.poweroffvm(vmstring)
     statusmsg(current_vmss.status)
+
 
 # begin tkinter components
 btnwidth = 12
@@ -182,6 +207,7 @@ baseframe.pack()
 versiontext = tk.Entry(topframe, width=btnwidth)
 capacitytext = tk.Entry(topframe, width=btnwidth)
 statustext = tk.Text(baseframe, height=1, width=50)
+
 
 def statusmsg(statusstring):
     if statustext.get(1.0, tk.END):
@@ -227,28 +253,36 @@ def displayvmss(vmssname):
     statustext.pack()
     statusmsg(current_vmss.status)
 
+
 def scalevmss():
+    global refresh_thread_running
     newcapacity = int(capacitytext.get())
     current_vmss.scale(newcapacity)
     statusmsg(current_vmss.status)
-    #displayvmss()
+    refresh_thread_running = True
+    # displayvmss()
+
 
 def updatevmss():
     newversion = versiontext.get()
     current_vmss.update_version(newversion)
     statusmsg(current_vmss.status)
 
+
 def poweronvmss():
     current_vmss.poweron()
     statusmsg(current_vmss.status)
+
 
 def poweroffvmss():
     current_vmss.poweroff()
     statusmsg(current_vmss.status)
 
+
 def deallocvmss():
     current_vmss.dealloc()
     statusmsg(current_vmss.status)
+
 
 def vmssdetails():
     # VMSS VM canvas - middle frame
@@ -270,8 +304,7 @@ def vmssdetails():
     vmrestartbtn.grid(row=1, column=2, sticky=tk.W)
     vmpoweroffbtn.grid(row=1, column=3, sticky=tk.W)
     vmdeallocbtn.grid(row=1, column=4, sticky=tk.W)
-    root.mainloop()
-
+    statusmsg(current_vmss.status)
 
 # start by listing VM Scale Sets
 vmsslist = sub.get_vmss_list()

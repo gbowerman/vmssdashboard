@@ -1,5 +1,6 @@
-import azurerm
 import json
+
+import azurerm
 
 
 class vmss():
@@ -17,6 +18,16 @@ class vmss():
         self.tier = vmssmodel['sku']['tier']
         self.offer = vmssmodel['properties']['virtualMachineProfile']['storageProfile']['imageReference']['offer']
         self.sku = vmssmodel['properties']['virtualMachineProfile']['storageProfile']['imageReference']['sku']
+        self.version = vmssmodel['properties']['virtualMachineProfile']['storageProfile']['imageReference']['version']
+        self.provisioningState = vmssmodel['properties']['provisioningState']
+        self.status = self.provisioningState
+
+    # update the model, useful to see if provisioning is complete
+    def refresh_model(self):
+        vmssmodel = azurerm.get_vmss(self.access_token, self.sub_id, self.rgname, self.name)
+        self.model = vmssmodel
+        self.capacity = vmssmodel['sku']['capacity']
+        self.vmsize = vmssmodel['sku']['name']
         self.version = vmssmodel['properties']['virtualMachineProfile']['storageProfile']['imageReference']['version']
         self.provisioningState = vmssmodel['properties']['provisioningState']
         self.status = self.provisioningState
@@ -115,9 +126,3 @@ class vmss():
             except KeyError:
                 print('KeyError: ' + json.dumps(instance))
 
-'''
-    def clear_domain_lists(self):
-        for i in range(5):
-            del self.fd_dict[i][:]
-            del self.ud_dict[i][:]
- '''

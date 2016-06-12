@@ -5,13 +5,15 @@ Copyright (c) 2016, Guy Bowerman
 Description: Graphical dashboard to show and set Azure VM Scale Set properties
 License: MIT (see LICENSE.txt file for details)
 """
-import pygame
-import azurerm
-import threading
-import webbrowser
-import time
 import json
 import sys
+import threading
+import time
+import webbrowser
+
+import pygame
+
+import azurerm
 
 # Load Azure app defaults
 try:
@@ -97,7 +99,7 @@ def get_vmss_properties(access_token, subscription_id):
                 'name']  # needed for scale operations (and displayed on dashboard)
             vmssProperties['tier'] = vmssget['sku']['tier']  # needed for scale operations
             vmssProperties['offer'] = \
-            vmssget['properties']['virtualMachineProfile']['storageProfile']['imageReference']['offer']
+                vmssget['properties']['virtualMachineProfile']['storageProfile']['imageReference']['offer']
             vmssProperties['sku'] = vmssget['properties']['virtualMachineProfile']['storageProfile']['imageReference'][
                 'sku']
             vmssProperties['provisioningState'] = vmssget['properties']['provisioningState']
