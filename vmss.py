@@ -16,9 +16,19 @@ class vmss():
         self.location = vmssmodel['location']
         self.vmsize = vmssmodel['sku']['name']
         self.tier = vmssmodel['sku']['tier']
-        self.offer = vmssmodel['properties']['virtualMachineProfile']['storageProfile']['imageReference']['offer']
-        self.sku = vmssmodel['properties']['virtualMachineProfile']['storageProfile']['imageReference']['sku']
-        self.version = vmssmodel['properties']['virtualMachineProfile']['storageProfile']['imageReference']['version']
+
+        # if it's a platform image, the model will have these
+        if 'imageReference' in vmssmodel['properties']['virtualMachineProfile']['storageProfile']:
+            self.offer = vmssmodel['properties']['virtualMachineProfile']['storageProfile']['imageReference']['offer']
+            self.sku = vmssmodel['properties']['virtualMachineProfile']['storageProfile']['imageReference']['sku']
+            self.version = vmssmodel['properties']['virtualMachineProfile']['storageProfile']['imageReference']['version']
+        # else it's a custom image it will have an image URI - to do: add something to display the image URI
+        else:
+            # for now just set these values so it doesn't break
+            self.offer = 'Custom'
+            self.sku = 'Custom'
+            self.version = 'Custom'
+
         self.provisioningState = vmssmodel['properties']['provisioningState']
         self.status = self.provisioningState
 
@@ -124,5 +134,6 @@ class vmss():
                 self.ud_dict[ud].append([instanceId, power_state])
                 self.fd_dict[fd].append([instanceId, power_state])
             except KeyError:
-                print('KeyError: ' + json.dumps(instance))
+                print('KeyError - UD/FD may not be assigned yet. Instance view: ' + json.dumps(instance))
+                break
 

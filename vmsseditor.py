@@ -40,7 +40,7 @@ def refresh_loop():
     while True:
         while (refresh_thread_running == True):
             current_vmss.refresh_model()
-            if current_vmss.status == 'Succeeded':
+            if current_vmss.status == 'Succeeded' or current_vmss.status == 'Failed':
                 refresh_thread_running = False
             time.sleep(10)
             vmssdetails()
@@ -99,70 +99,90 @@ def getuds():
 
 
 def startud():
+    global refresh_thread_running
     udinstancelist = getuds()
     current_vmss.startvm(json.dumps(udinstancelist))
     statusmsg(current_vmss.status)
+    refresh_thread_running = True
 
 
 def powerud():
+    global refresh_thread_running
     udinstancelist = getuds()
     current_vmss.poweroffvm(json.dumps(udinstancelist))
     statusmsg(current_vmss.status)
+    refresh_thread_running = True
 
 
 def upgradeud():
+    global refresh_thread_running
     udinstancelist = getuds()
     current_vmss.upgradevm(json.dumps(udinstancelist))
     statusmsg(current_vmss.status)
+    refresh_thread_running = True
 
 
 def reimagevm():
+    global refresh_thread_running
     vmid = vmtext.get()
     vmstring = '["' + vmid + '"]'
     current_vmss.reimagevm(vmstring)
     statusmsg(current_vmss.status)
+    refresh_thread_running = True
 
 
 def upgradevm():
+    global refresh_thread_running
     vmid = vmtext.get()
     vmstring = '["' + vmid + '"]'
     current_vmss.upgradevm(vmstring)
     statusmsg(current_vmss.status)
+    refresh_thread_running = True
 
 
 def deletevm():
+    global refresh_thread_running
     vmid = vmtext.get()
     vmstring = '["' + vmid + '"]'
     current_vmss.deletevm(vmstring)
     statusmsg(current_vmss.status)
+    refresh_thread_running = True
 
 
 def startvm():
+    global refresh_thread_running
     vmid = vmtext.get()
     vmstring = '["' + vmid + '"]'
     current_vmss.startvm(vmstring)
     statusmsg(current_vmss.status)
+    refresh_thread_running = True
 
 
 def restartvm():
+    global refresh_thread_running
     vmid = vmtext.get()
     vmstring = '["' + vmid + '"]'
     current_vmss.restartvm(vmstring)
     statusmsg(current_vmss.status)
+    refresh_thread_running = True
 
 
 def deallocvm():
+    global refresh_thread_running
     vmid = vmtext.get()
     vmstring = '["' + vmid + '"]'
     current_vmss.deallocvm(vmstring)
     statusmsg(current_vmss.status)
+    refresh_thread_running = True
 
 
 def poweroffvm():
+    global refresh_thread_running
     vmid = vmtext.get()
     vmstring = '["' + vmid + '"]'
     current_vmss.poweroffvm(vmstring)
     statusmsg(current_vmss.status)
+    refresh_thread_running = True
 
 
 # begin tkinter components
@@ -264,24 +284,32 @@ def scalevmss():
 
 
 def updatevmss():
+    global refresh_thread_running
     newversion = versiontext.get()
     current_vmss.update_version(newversion)
     statusmsg(current_vmss.status)
+    refresh_thread_running = True
 
 
 def poweronvmss():
+    global refresh_thread_running
     current_vmss.poweron()
     statusmsg(current_vmss.status)
+    refresh_thread_running = True
 
 
 def poweroffvmss():
+    global refresh_thread_running
     current_vmss.poweroff()
     statusmsg(current_vmss.status)
+    refresh_thread_running = True
 
 
 def deallocvmss():
+    global refresh_thread_running
     current_vmss.dealloc()
     statusmsg(current_vmss.status)
+    refresh_thread_running = True
 
 
 def vmssdetails():
