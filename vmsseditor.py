@@ -246,14 +246,14 @@ def displayvmss(vmssname):
     scalebtn = tk.Button(topframe, text="Scale", command=scalevmss, width=btnwidth)
     scalebtn.grid(row=0, column=3, sticky=tk.W)
     # VMSS properties - row 2
-    sizelabel = tk.Label(topframe, text=current_vmss.vmsize)
-    locationlabel = tk.Label(topframe, text=current_vmss.location)
-    offerlabel = tk.Label(topframe, text=current_vmss.offer)
+    sizelabel = tk.Label(topframe, text=current_vmss.vmsize, width=btnwidth, justify=tk.LEFT)
+    locationlabel = tk.Label(topframe, text=current_vmss.location, width=btnwidth, justify=tk.LEFT)
+    offerlabel = tk.Label(topframe, text=current_vmss.offer, width=btnwidth, justify=tk.LEFT)
     sizelabel.grid(row=2, column=0, sticky=tk.W)
     offerlabel.grid(row=2, column=1, sticky=tk.W)
     locationlabel.grid(row=2, column=2, sticky=tk.W)
     # OS version - row 3
-    skulabel = tk.Label(topframe, text=current_vmss.sku)
+    skulabel = tk.Label(topframe, text=current_vmss.sku, width=btnwidth, justify=tk.LEFT)
     skulabel.grid(row=3, column=0, sticky=tk.W)
     versiontext.grid(row=3, column=1, sticky=tk.W)
     versiontext.delete(0, tk.END)

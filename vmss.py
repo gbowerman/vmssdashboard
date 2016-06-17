@@ -19,15 +19,17 @@ class vmss():
 
         # if it's a platform image, the model will have these
         if 'imageReference' in vmssmodel['properties']['virtualMachineProfile']['storageProfile']:
+            self.image_type = 'platform'
             self.offer = vmssmodel['properties']['virtualMachineProfile']['storageProfile']['imageReference']['offer']
             self.sku = vmssmodel['properties']['virtualMachineProfile']['storageProfile']['imageReference']['sku']
             self.version = vmssmodel['properties']['virtualMachineProfile']['storageProfile']['imageReference']['version']
         # else it's a custom image it will have an image URI - to do: add something to display the image URI
         else:
             # for now just set these values so it doesn't break
-            self.offer = 'Custom'
-            self.sku = 'Custom'
-            self.version = 'Custom'
+            self.image_type = 'custom'
+            self.offer = vmssmodel['properties']['virtualMachineProfile']['storageProfile']['osDisk']['osType']
+            self.sku = 'custom'
+            self.version = vmssmodel['properties']['virtualMachineProfile']['storageProfile']['osDisk']['image']['uri']
 
         self.provisioningState = vmssmodel['properties']['provisioningState']
         self.status = self.provisioningState
@@ -38,7 +40,10 @@ class vmss():
         self.model = vmssmodel
         self.capacity = vmssmodel['sku']['capacity']
         self.vmsize = vmssmodel['sku']['name']
-        self.version = vmssmodel['properties']['virtualMachineProfile']['storageProfile']['imageReference']['version']
+        if self.image_type == 'platform':
+            self.version = vmssmodel['properties']['virtualMachineProfile']['storageProfile']['imageReference']['version']
+        else:
+            self.version = vmssmodel['properties']['virtualMachineProfile']['storageProfile']['osDisk']['image']['uri']
         self.provisioningState = vmssmodel['properties']['provisioningState']
         self.status = self.provisioningState
 
@@ -49,8 +54,10 @@ class vmss():
     # update the VMSS model version property
     def update_version(self, newversion):
         if self.version != newversion:
-            self.model['properties']['virtualMachineProfile']['storageProfile']['imageReference'][
-                'version'] = newversion
+            if self.image_type == 'platform':
+                self.model['properties']['virtualMachineProfile']['storageProfile']['imageReference']['version'] = newversion
+            else:
+                self.model['properties']['virtualMachineProfile']['storageProfile']['osDisk']['image']['uri'] = newversion
             self.version = newversion
             # put the vmss model
             updateresult = azurerm.update_vmss(self.access_token, self.sub_id, self.rgname, self.name,
