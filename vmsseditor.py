@@ -10,7 +10,7 @@ import sys
 import threading
 import time
 import tkinter as tk
-
+from tkinter import messagebox
 import subscription
 import vmss
 
@@ -337,15 +337,15 @@ def vmssdetails():
 # start by listing VM Scale Sets
 vmsslist = sub.get_vmss_list()
 selectedvmss = tk.StringVar()
-selectedvmss.set(vmsslist[0])
-selectedud.set('0')
-displayvmss(vmsslist[0])
-
-# create GUI components
-
-# VMSS picker - row 0
-vmsslistoption = tk.OptionMenu(topframe, selectedvmss, *vmsslist, command=displayvmss)
-vmsslistoption.config(width=9)
-vmsslistoption.grid(row=0, column=0, sticky=tk.W)
+if len(vmsslist) > 0:
+    selectedvmss.set(vmsslist[0])
+    selectedud.set('0')
+    displayvmss(vmsslist[0])
+    # create top level GUI components
+    vmsslistoption = tk.OptionMenu(topframe, selectedvmss, *vmsslist, command=displayvmss)
+    vmsslistoption.config(width=9)
+    vmsslistoption.grid(row=0, column=0, sticky=tk.W)
+else:
+    messagebox.showwarning("Warning", "Your subscription:\n" + sub.sub_id + "\ncontains no VM Scale Sets")
 
 root.mainloop()
