@@ -48,10 +48,12 @@ def refresh_loop():
 
 # start timer thread
 timer_thread = threading.Thread(target=subidkeepalive, args=())
+timer_thread.daemon = True
 timer_thread.start()
 
 # start refresh thread
 refresh_thread = threading.Thread(target=refresh_loop, args=())
+refresh_thread.daemon = True
 refresh_thread.start()
 
 
