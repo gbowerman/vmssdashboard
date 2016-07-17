@@ -128,10 +128,11 @@ class vmss():
             if status['code'].startswith('Power'):
                 return status['code'][11:]
 
-    # create a list of VMs in the scale set by fault domain and update domain
+    # create lists of VMs in the scale set by fault domain, update domain, and an all-up
     def set_domain_lists(self):
         self.fd_dict = {f: [] for f in range(5)}
         self.ud_dict = {u: [] for u in range(5)}
+        self.vm_list = []
         for instance in self.vm_instance_view['value']:
             try:
                 instanceId = instance['instanceId']
@@ -140,6 +141,7 @@ class vmss():
                 power_state = self.get_power_state(instance['properties']['instanceView']['statuses'])
                 self.ud_dict[ud].append([instanceId, power_state])
                 self.fd_dict[fd].append([instanceId, power_state])
+                self.vm_list.append([instanceId, fd, ud, power_state])
             except KeyError:
                 print('KeyError - UD/FD may not be assigned yet. Instance view: ' + json.dumps(instance))
                 break

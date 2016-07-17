@@ -60,34 +60,55 @@ refresh_thread.start()
 def assign_color_to_power_state(powerstate):
     if powerstate == 'running':
         return 'green'
-    elif powerstate == 'stopped' or powerstate == 'deallocated':
+    elif powerstate == 'stopped':
         return 'red'
-    else:
+    elif powerstate == 'starting':
+        return 'yellow'
+    elif powerstate == 'stopping':
         return 'orange'
+    elif powerstate == 'deallocating':
+        return 'grey'
+    elif powerstate == 'deallocated':
+        return 'black'
+    else: # unknown
+        return 'blue'
 
-
-# draw a heat map for the VMSS VMs - uses the set_domain_lists() functon from the vmss class
-def draw_vms(vmssinstances):
-    ydelta = 0
-    xdelta = 0
-    xval = 20
-    yval = 10
-    diameter = 15
+def draw_grid():
     vmcanvas.delete("all")
+    # horizontal lines for FDs
+    for y in range(4):
+        ydelta = y * 35
+        vmcanvas.create_line(10, 50 + ydelta, 510, 50 + ydelta)
+
+    # vertical lines for UDs
+    for x in range(4):
+        xdelta = x * 100
+        vmcanvas.create_text(20 + xdelta, 10, text='UD ' + str(x))
+        vmcanvas.create_line(108 + xdelta, 20, 108 + xdelta, 180, dash=(4, 2))
+    vmcanvas.create_text(420, 10, text='UD 4')
+
+# draw a heat map for the VMSS VMs - uses the set_domain_lists() function from the vmss class
+def draw_vms(vmssinstances):
+    xval = 10
+    yval = 20
+    diameter = 15
+    draw_grid()
     # current_vmss.clear_domain_lists()
     current_vmss.set_domain_lists()
-    for faultdomain in range(5):
-        for entry in current_vmss.fd_dict[faultdomain]:
-            instance_id = entry[0]
-            powerstate = entry[1]
-            statuscolor = assign_color_to_power_state(powerstate)
-            # colored circle represents machine power state
-            vmcanvas.create_oval(xval + xdelta, yval, xval + xdelta + diameter, yval + diameter, fill=statuscolor)
-            # print VM ID under each circle
-            vmcanvas.create_text(xval + xdelta + 7, yval + 22, text=instance_id)
-            xdelta += 20
-        xdelta = 0
-        yval += 30
+    matrix = [[0 for x in range(5)] for y in range(5)]
+    for vm in current_vmss.vm_list:
+        instance_id = vm[0]
+        fd = vm[1]
+        ud = vm[2]
+        powerstate = vm[3]
+        statuscolor = assign_color_to_power_state(powerstate)
+        xdelta = (ud * 100) + (matrix[fd][ud] * 20)
+        ydelta = fd * 35
+        # colored circle represents machine power state
+        vmcanvas.create_oval(xval + xdelta, yval + ydelta, xval + xdelta + diameter, yval + ydelta + diameter, fill=statuscolor)
+        # print VM ID under each circle
+        vmcanvas.create_text(xval + xdelta + 7, yval + ydelta + 22, text=instance_id)
+        matrix[fd][ud] += 1
 
 
 def getuds():
@@ -192,19 +213,18 @@ btnwidth = 12
 btnwidthud = 12
 root = tk.Tk()  # Makes the window
 root.wm_title("VM Scale Set Editor")
-root.geometry('420x410')
+root.geometry('530x440')
 root.wm_iconbitmap('vm.ico')
 topframe = tk.Frame(root)
 middleframe = tk.Frame(root)
 udframe = tk.Frame(root)
 selectedud = tk.StringVar()
-heatmaplabel = tk.Label(middleframe, text='VM Heatmap - 1 row = 1 FD', width=55, anchor=tk.W)
-vmcanvas = tk.Canvas(middleframe, height=170, width=420)
+vmcanvas = tk.Canvas(middleframe, height=210, width=510, bg = '#F0F8FF') # alice blue
 vmframe = tk.Frame(root)
 baseframe = tk.Frame(root)
-topframe.pack()
-middleframe.pack()
-udframe.pack()
+topframe.pack(fill=tk.X)
+middleframe.pack(fill=tk.X)
+udframe.pack(fill=tk.X)
 # UD operations - UD frame
 udlabel = tk.Label(udframe, text='UD:')
 udoption = tk.OptionMenu(udframe, selectedud, '0', '1', '2', '3', '4')
@@ -222,13 +242,13 @@ vmstartbtn = tk.Button(vmframe, text='Start', command=startvm, width=btnwidthud)
 vmrestartbtn = tk.Button(vmframe, text='Restart', command=restartvm, width=btnwidthud)
 vmdeallocbtn = tk.Button(vmframe, text='Dealloc', command=deallocvm, width=btnwidthud)
 vmpoweroffbtn = tk.Button(vmframe, text='Power off', command=poweroffvm, width=btnwidthud)
-vmframe.pack()
+vmframe.pack(fill=tk.X)
 
-baseframe.pack()
+baseframe.pack(fill=tk.X)
 
 versiontext = tk.Entry(topframe, width=btnwidth)
 capacitytext = tk.Entry(topframe, width=btnwidth)
-statustext = tk.Text(baseframe, height=1, width=50)
+statustext = tk.Text(baseframe, height=1, width=65)
 
 
 def statusmsg(statusstring):
@@ -241,10 +261,10 @@ def displayvmss(vmssname):
     global current_vmss
     current_vmss = vmss.vmss(vmssname, sub.vmssdict[vmssname], sub.sub_id, sub.access_token)
     # capacity - row 0
-    tk.Label(topframe, text='VMs').grid(row=0, column=2, sticky=tk.W)
     capacitytext.grid(row=0, column=1, sticky=tk.W)
     capacitytext.delete(0, tk.END)
     capacitytext.insert(0, str(current_vmss.capacity))
+    tk.Label(topframe, text='VMs').grid(row=0, column=2, sticky=tk.W)
     scalebtn = tk.Button(topframe, text="Scale", command=scalevmss, width=btnwidth)
     scalebtn.grid(row=0, column=3, sticky=tk.W)
     # VMSS properties - row 2
@@ -272,7 +292,7 @@ def displayvmss(vmssname):
     detailsbtn = tk.Button(topframe, text="Details", command=vmssdetails, width=btnwidth)
     detailsbtn.grid(row=4, column=3, sticky=tk.W)
     # status line
-    statustext.pack()
+    statustext.pack(fill=tk.X)
     statusmsg(current_vmss.status)
 
 
@@ -316,7 +336,6 @@ def deallocvmss():
 
 def vmssdetails():
     # VMSS VM canvas - middle frame
-    heatmaplabel.pack()
     vmcanvas.pack()
     current_vmss.init_vm_instance_view()
     draw_vms(current_vmss.vm_instance_view)
