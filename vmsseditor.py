@@ -78,18 +78,20 @@ def draw_grid():
     # horizontal lines for FDs
     for y in range(4):
         ydelta = y * 35
-        vmcanvas.create_line(10, 50 + ydelta, 510, 50 + ydelta)
+        vmcanvas.create_text(15, ydelta + 30, text='FD ' + str(y))
+        vmcanvas.create_line(15, 50 + ydelta, 515, 50 + ydelta)
+    vmcanvas.create_text(15, 170, text='FD 4')
 
     # vertical lines for UDs
     for x in range(4):
         xdelta = x * 100
-        vmcanvas.create_text(20 + xdelta, 10, text='UD ' + str(x))
-        vmcanvas.create_line(108 + xdelta, 20, 108 + xdelta, 180, dash=(4, 2))
-    vmcanvas.create_text(420, 10, text='UD 4')
+        vmcanvas.create_text(40 + xdelta, 10, text='UD ' + str(x))
+        vmcanvas.create_line(128 + xdelta, 20, 128 + xdelta, 180, dash=(4, 2))
+    vmcanvas.create_text(440, 10, text='UD 4')
 
 # draw a heat map for the VMSS VMs - uses the set_domain_lists() function from the vmss class
 def draw_vms(vmssinstances):
-    xval = 10
+    xval = 30
     yval = 20
     diameter = 15
     draw_grid()
@@ -213,13 +215,13 @@ btnwidth = 12
 btnwidthud = 12
 root = tk.Tk()  # Makes the window
 root.wm_title("VM Scale Set Editor")
-root.geometry('530x440')
+root.geometry('550x440')
 root.wm_iconbitmap('vm.ico')
 topframe = tk.Frame(root)
 middleframe = tk.Frame(root)
 udframe = tk.Frame(root)
 selectedud = tk.StringVar()
-vmcanvas = tk.Canvas(middleframe, height=210, width=510, bg = '#F0F8FF') # alice blue
+vmcanvas = tk.Canvas(middleframe, height=210, width=530, bg = '#F0F8FF') # alice blue
 vmframe = tk.Frame(root)
 baseframe = tk.Frame(root)
 topframe.pack(fill=tk.X)
