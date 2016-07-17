@@ -223,22 +223,24 @@ def poweroffvm():
 # begin tkinter components
 btnwidth = 12
 btnwidthud = 12
+frame_bgcolor = '#CD5C5C' 
+canvas_bgcolor = '#F0FFFF' # azure
 root = tk.Tk()  # Makes the window
 root.wm_title("VM Scale Set Editor")
-root.geometry('550x440')
+root.geometry('550x425')
 root.wm_iconbitmap('vm.ico')
-topframe = tk.Frame(root)
-middleframe = tk.Frame(root)
-udframe = tk.Frame(root)
+topframe = tk.Frame(root, bg = frame_bgcolor)
+middleframe = tk.Frame(root, bg = frame_bgcolor)
+udframe = tk.Frame(root, bg = frame_bgcolor)
 selectedud = tk.StringVar()
-vmcanvas = tk.Canvas(middleframe, height=210, width=530, bg = '#F0F8FF') # alice blue
-vmframe = tk.Frame(root)
-baseframe = tk.Frame(root)
+vmcanvas = tk.Canvas(middleframe, height=210, width=530, bg = canvas_bgcolor)
+vmframe = tk.Frame(root, bg = frame_bgcolor)
+baseframe = tk.Frame(root, bg = frame_bgcolor)
 topframe.pack(fill=tk.X)
 middleframe.pack(fill=tk.X)
 udframe.pack(fill=tk.X)
 # UD operations - UD frame
-udlabel = tk.Label(udframe, text='UD:')
+udlabel = tk.Label(udframe, text='UD:', bg = frame_bgcolor)
 udoption = tk.OptionMenu(udframe, selectedud, '0', '1', '2', '3', '4')
 udoption.config(width=8)
 reimagebtnud = tk.Button(udframe, text='Reimage', command=reimageud, width=btnwidthud)
@@ -246,8 +248,8 @@ upgradebtnud = tk.Button(udframe, text='Upgrade', command=upgradeud, width=btnwi
 startbtnud = tk.Button(udframe, text='Start', command=startud, width=btnwidthud)
 powerbtnud = tk.Button(udframe, text='Power off', command=powerud, width=btnwidthud)
 # VM operations - VM frame
-vmlabel = tk.Label(vmframe, text='VM:')
-vmtext = tk.Entry(vmframe, width=15)
+vmlabel = tk.Label(vmframe, text='VM:', bg = frame_bgcolor)
+vmtext = tk.Entry(vmframe, width=15, bg = canvas_bgcolor)
 reimagebtn = tk.Button(vmframe, text='Reimage', command=reimagevm, width=btnwidthud)
 vmupgradebtn = tk.Button(vmframe, text='Upgrade', command=upgradevm, width=btnwidthud)
 vmdeletebtn = tk.Button(vmframe, text='Delete', command=deletevm, width=btnwidthud)
@@ -259,9 +261,9 @@ vmframe.pack(fill=tk.X)
 
 baseframe.pack(fill=tk.X)
 
-versiontext = tk.Entry(topframe, width=btnwidth)
-capacitytext = tk.Entry(topframe, width=btnwidth)
-statustext = tk.Text(baseframe, height=1, width=65)
+versiontext = tk.Entry(topframe, width=btnwidth, bg = canvas_bgcolor)
+capacitytext = tk.Entry(topframe, width=btnwidth, bg = canvas_bgcolor)
+statustext = tk.Text(baseframe, height=1, width=65, bg = canvas_bgcolor)
 
 
 def statusmsg(statusstring):
@@ -277,18 +279,18 @@ def displayvmss(vmssname):
     capacitytext.grid(row=0, column=1, sticky=tk.W)
     capacitytext.delete(0, tk.END)
     capacitytext.insert(0, str(current_vmss.capacity))
-    tk.Label(topframe, text='VMs').grid(row=0, column=2, sticky=tk.W)
+    tk.Label(topframe, text='VMs', bg = frame_bgcolor).grid(row=0, column=2, sticky=tk.W)
     scalebtn = tk.Button(topframe, text="Scale", command=scalevmss, width=btnwidth)
     scalebtn.grid(row=0, column=3, sticky=tk.W)
     # VMSS properties - row 2
-    sizelabel = tk.Label(topframe, text=current_vmss.vmsize, width=btnwidth, justify=tk.LEFT)
-    locationlabel = tk.Label(topframe, text=current_vmss.location, width=btnwidth, justify=tk.LEFT)
-    offerlabel = tk.Label(topframe, text=current_vmss.offer, width=btnwidth, justify=tk.LEFT)
+    sizelabel = tk.Label(topframe, text=current_vmss.vmsize, width=btnwidth, justify=tk.LEFT, bg = frame_bgcolor)
+    locationlabel = tk.Label(topframe, text=current_vmss.location, width=btnwidth, justify=tk.LEFT, bg = frame_bgcolor)
+    offerlabel = tk.Label(topframe, text=current_vmss.offer, width=btnwidth, justify=tk.LEFT, bg = frame_bgcolor)
     sizelabel.grid(row=2, column=0, sticky=tk.W)
     offerlabel.grid(row=2, column=1, sticky=tk.W)
     locationlabel.grid(row=2, column=2, sticky=tk.W)
     # OS version - row 3
-    skulabel = tk.Label(topframe, text=current_vmss.sku, width=btnwidth, justify=tk.LEFT)
+    skulabel = tk.Label(topframe, text=current_vmss.sku, width=btnwidth, justify=tk.LEFT, bg = frame_bgcolor)
     skulabel.grid(row=3, column=0, sticky=tk.W)
     versiontext.grid(row=3, column=1, sticky=tk.W)
     versiontext.delete(0, tk.END)
