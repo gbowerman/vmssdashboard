@@ -223,8 +223,8 @@ def poweroffvm():
 # begin tkinter components
 btnwidth = 14
 btnwidthud = 14
-entrywidth = 14
-frame_bgcolor = '#008080'
+entrywidth = 15
+frame_bgcolor = '#87CE80' # before #008080
 canvas_bgcolor = '#F0FFFF' # azure
 btncolor = '#FF8C00'
 root = tk.Tk()  # Makes the window
@@ -234,26 +234,24 @@ root.configure(background = frame_bgcolor)
 root.wm_iconbitmap('vm.ico')
 topframe = tk.Frame(root, bg = frame_bgcolor)
 middleframe = tk.Frame(root, bg = frame_bgcolor)
-udframe = tk.Frame(root, bg = frame_bgcolor)
 selectedud = tk.StringVar()
 vmcanvas = tk.Canvas(middleframe, height=195, width=530, bg = canvas_bgcolor)
 vmframe = tk.Frame(root, bg = frame_bgcolor)
 baseframe = tk.Frame(root, bg = frame_bgcolor)
 topframe.pack(fill=tk.X)
 middleframe.pack(fill=tk.X)
-udframe.pack(fill=tk.X)
 # UD operations - UD frame
-udlabel = tk.Label(udframe, text='UD:', bg = frame_bgcolor)
-udoption = tk.OptionMenu(udframe, selectedud, '0', '1', '2', '3', '4')
-udoption.config(width=8, bg = btncolor, activebackground = btncolor)
+udlabel = tk.Label(vmframe, text='UD:', bg = frame_bgcolor)
+udoption = tk.OptionMenu(vmframe, selectedud, '0', '1', '2', '3', '4')
+udoption.config(width=6, bg = btncolor, activebackground = btncolor)
 udoption["menu"].config(bg=btncolor)
-reimagebtnud = tk.Button(udframe, text='Reimage', command=reimageud, width=btnwidthud, bg = btncolor)
-upgradebtnud = tk.Button(udframe, text='Upgrade', command=upgradeud, width=btnwidthud, bg = btncolor)
-startbtnud = tk.Button(udframe, text='Start', command=startud, width=btnwidthud, bg = btncolor)
-powerbtnud = tk.Button(udframe, text='Power off', command=powerud, width=btnwidthud, bg = btncolor)
+reimagebtnud = tk.Button(vmframe, text='Reimage', command=reimageud, width=btnwidthud, bg = btncolor)
+upgradebtnud = tk.Button(vmframe, text='Upgrade', command=upgradeud, width=btnwidthud, bg = btncolor)
+startbtnud = tk.Button(vmframe, text='Start', command=startud, width=btnwidthud, bg = btncolor)
+powerbtnud = tk.Button(vmframe, text='Power off', command=powerud, width=btnwidthud, bg = btncolor)
 # VM operations - VM frame
 vmlabel = tk.Label(vmframe, text='VM:', bg = frame_bgcolor)
-vmtext = tk.Entry(vmframe, width=entrywidth, bg = canvas_bgcolor)
+vmtext = tk.Entry(vmframe, width=11, bg = canvas_bgcolor)
 reimagebtn = tk.Button(vmframe, text='Reimage', command=reimagevm, width=btnwidthud, bg = btncolor)
 vmupgradebtn = tk.Button(vmframe, text='Upgrade', command=upgradevm, width=btnwidthud, bg = btncolor)
 vmdeletebtn = tk.Button(vmframe, text='Delete', command=deletevm, width=btnwidthud, bg = btncolor)
@@ -267,7 +265,7 @@ baseframe.pack(fill=tk.X)
 
 versiontext = tk.Entry(topframe, width=entrywidth, bg = canvas_bgcolor)
 capacitytext = tk.Entry(topframe, width=entrywidth, bg = canvas_bgcolor)
-statustext = tk.Text(baseframe, height=1, width=65, bg = canvas_bgcolor)
+statustext = tk.Text(baseframe, height=1, width=67, bg = canvas_bgcolor)
 
 
 def statusmsg(statusstring):
@@ -316,7 +314,7 @@ def displayvmss(vmssname):
     detailsbtn = tk.Button(topframe, text="Details", command=vmssdetails, width=btnwidth, bg = btncolor)
     detailsbtn.grid(row=4, column=4, sticky=tk.W)
     # status line
-    statustext.pack(fill=tk.X)
+    statustext.pack()
     statusmsg(current_vmss.status)
 
 
@@ -375,15 +373,15 @@ def vmssdetails():
     upgradebtnud.grid(row=0, column=3, sticky=tk.W)
     startbtnud.grid(row=0, column=4, sticky=tk.W)
     powerbtnud.grid(row=0, column=5, sticky=tk.W)
-    vmlabel.grid(row=0, column=0, sticky=tk.W)
-    vmtext.grid(row=0, column=1, sticky=tk.W)
-    reimagebtn.grid(row=0, column=2, sticky=tk.W)
-    vmupgradebtn.grid(row=0, column=3, sticky=tk.W)
-    vmstartbtn.grid(row=0, column=4, sticky=tk.W)
-    vmpoweroffbtn.grid(row=0, column=5, sticky=tk.W)
-    vmdeletebtn.grid(row=1, column=2, sticky=tk.W)
-    vmrestartbtn.grid(row=1, column=3, sticky=tk.W)
-    vmdeallocbtn.grid(row=1, column=4, sticky=tk.W)
+    vmlabel.grid(row=1, column=0, sticky=tk.W)
+    vmtext.grid(row=1, column=1, sticky=tk.W)
+    reimagebtn.grid(row=1, column=2, sticky=tk.W)
+    vmupgradebtn.grid(row=1, column=3, sticky=tk.W)
+    vmstartbtn.grid(row=1, column=4, sticky=tk.W)
+    vmpoweroffbtn.grid(row=1, column=5, sticky=tk.W)
+    vmdeletebtn.grid(row=2, column=2, sticky=tk.W)
+    vmrestartbtn.grid(row=2, column=3, sticky=tk.W)
+    vmdeallocbtn.grid(row=2, column=4, sticky=tk.W)
     statusmsg(current_vmss.status)
 
 # start by listing VM Scale Sets
