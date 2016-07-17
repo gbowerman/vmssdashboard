@@ -78,6 +78,10 @@ class vmss():
         result = azurerm.start_vmss(self.access_token, self.sub_id, self.rgname, self.name)
         self.status = result
 
+    def restart(self):
+        result = azurerm.restart_vmss(self.access_token, self.sub_id, self.rgname, self.name)
+        self.status = result
+
     # power off all the VMs in the scale set
     def poweroff(self):
         result = azurerm.poweroff_vmss(self.access_token, self.sub_id, self.rgname, self.name)

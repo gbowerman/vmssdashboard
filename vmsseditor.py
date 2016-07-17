@@ -1,4 +1,6 @@
-# VMSS test - program to test VMSS class
+# VMSS Editor - Azure VM Scale Set editor tool
+# vmsseditor.py - GUI component of VMSS Editor, tkinter based
+#  - uses vmss.py and subscription.py classes for Azure operations
 """
 Copyright (c) 2016, Guy Bowerman
 Description: Graphical dashboard to show and set Azure VM Scale Set properties
@@ -79,19 +81,19 @@ def draw_grid():
     for y in range(4):
         ydelta = y * 35
         vmcanvas.create_text(15, ydelta + 30, text='FD ' + str(y))
-        vmcanvas.create_line(15, 50 + ydelta, 515, 50 + ydelta)
+        vmcanvas.create_line(35, 50 + ydelta, 520, 50 + ydelta)
     vmcanvas.create_text(15, 170, text='FD 4')
 
     # vertical lines for UDs
     for x in range(4):
         xdelta = x * 100
-        vmcanvas.create_text(40 + xdelta, 10, text='UD ' + str(x))
-        vmcanvas.create_line(128 + xdelta, 20, 128 + xdelta, 180, dash=(4, 2))
-    vmcanvas.create_text(440, 10, text='UD 4')
+        vmcanvas.create_text(45 + xdelta, 10, text='UD ' + str(x))
+        vmcanvas.create_line(130 + xdelta, 20, 130 + xdelta, 180, dash=(4, 2))
+    vmcanvas.create_text(445, 10, text='UD 4')
 
 # draw a heat map for the VMSS VMs - uses the set_domain_lists() function from the vmss class
 def draw_vms(vmssinstances):
-    xval = 30
+    xval = 35
     yval = 20
     diameter = 15
     draw_grid()
@@ -135,6 +137,14 @@ def powerud():
     global refresh_thread_running
     udinstancelist = getuds()
     current_vmss.poweroffvm(json.dumps(udinstancelist))
+    statusmsg(current_vmss.status)
+    refresh_thread_running = True
+
+
+def reimageud():
+    global refresh_thread_running
+    udinstancelist = getuds()
+    current_vmss.reimagevm(json.dumps(udinstancelist))
     statusmsg(current_vmss.status)
     refresh_thread_running = True
 
@@ -230,10 +240,11 @@ udframe.pack(fill=tk.X)
 # UD operations - UD frame
 udlabel = tk.Label(udframe, text='UD:')
 udoption = tk.OptionMenu(udframe, selectedud, '0', '1', '2', '3', '4')
-udoption.config(width=9)
-upgradebtm = tk.Button(udframe, text='Upgrade', command=upgradeud, width=btnwidthud)
-startbtmud = tk.Button(udframe, text='Start', command=startud, width=btnwidthud)
-powerbtmud = tk.Button(udframe, text='Power off', command=powerud, width=btnwidthud)
+udoption.config(width=8)
+reimagebtnud = tk.Button(udframe, text='Reimage', command=reimageud, width=btnwidthud)
+upgradebtnud = tk.Button(udframe, text='Upgrade', command=upgradeud, width=btnwidthud)
+startbtnud = tk.Button(udframe, text='Start', command=startud, width=btnwidthud)
+powerbtnud = tk.Button(udframe, text='Power off', command=powerud, width=btnwidthud)
 # VM operations - VM frame
 vmlabel = tk.Label(vmframe, text='VM:')
 vmtext = tk.Entry(vmframe, width=15)
@@ -287,12 +298,14 @@ def displayvmss(vmssname):
     # vmss operations - row 4
     onbtn = tk.Button(topframe, text="Start", command=poweronvmss, width=btnwidth)
     onbtn.grid(row=4, column=0, sticky=tk.W)
+    onbtn = tk.Button(topframe, text="Retart", command=restartvmss, width=btnwidth)
+    onbtn.grid(row=4, column=1, sticky=tk.W)
     offbtn = tk.Button(topframe, text="Power off", command=poweroffvmss, width=btnwidth)
-    offbtn.grid(row=4, column=1, sticky=tk.W)
+    offbtn.grid(row=4, column=2, sticky=tk.W)
     deallocbtn = tk.Button(topframe, text="Stop Dealloc", command=deallocvmss, width=btnwidth)
-    deallocbtn.grid(row=4, column=2, sticky=tk.W)
+    deallocbtn.grid(row=4, column=3, sticky=tk.W)
     detailsbtn = tk.Button(topframe, text="Details", command=vmssdetails, width=btnwidth)
-    detailsbtn.grid(row=4, column=3, sticky=tk.W)
+    detailsbtn.grid(row=4, column=4, sticky=tk.W)
     # status line
     statustext.pack(fill=tk.X)
     statusmsg(current_vmss.status)
@@ -321,6 +334,11 @@ def poweronvmss():
     statusmsg(current_vmss.status)
     refresh_thread_running = True
 
+def restartvmss():
+    global refresh_thread_running
+    current_vmss.restart()
+    statusmsg(current_vmss.status)
+    refresh_thread_running = True
 
 def poweroffvmss():
     global refresh_thread_running
@@ -343,17 +361,18 @@ def vmssdetails():
     draw_vms(current_vmss.vm_instance_view)
     udlabel.grid(row=0, column=0, sticky=tk.W)
     udoption.grid(row=0, column=1, sticky=tk.W)
-    upgradebtm.grid(row=0, column=2, sticky=tk.W)
-    startbtmud.grid(row=0, column=3, sticky=tk.W)
-    powerbtmud.grid(row=0, column=4, sticky=tk.W)
+    reimagebtnud.grid(row=0, column=2, sticky=tk.W)
+    upgradebtnud.grid(row=0, column=3, sticky=tk.W)
+    startbtnud.grid(row=0, column=4, sticky=tk.W)
+    powerbtnud.grid(row=0, column=5, sticky=tk.W)
     vmlabel.grid(row=0, column=0, sticky=tk.W)
     vmtext.grid(row=0, column=1, sticky=tk.W)
     reimagebtn.grid(row=0, column=2, sticky=tk.W)
     vmupgradebtn.grid(row=0, column=3, sticky=tk.W)
-    vmdeletebtn.grid(row=0, column=4, sticky=tk.W)
-    vmstartbtn.grid(row=1, column=1, sticky=tk.W)
+    vmstartbtn.grid(row=0, column=4, sticky=tk.W)
+    vmpoweroffbtn.grid(row=0, column=5, sticky=tk.W)
+    vmdeletebtn.grid(row=1, column=1, sticky=tk.W)
     vmrestartbtn.grid(row=1, column=2, sticky=tk.W)
-    vmpoweroffbtn.grid(row=1, column=3, sticky=tk.W)
     vmdeallocbtn.grid(row=1, column=4, sticky=tk.W)
     statusmsg(current_vmss.status)
 
