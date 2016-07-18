@@ -75,6 +75,7 @@ def assign_color_to_power_state(powerstate):
     else: # unknown
         return 'blue'
 
+# draw a grid to delineate fault domains and update domains on the VMSS heatmap
 def draw_grid():
     vmcanvas.delete("all")
     # horizontal lines for FDs
@@ -88,7 +89,7 @@ def draw_grid():
     for x in range(4):
         xdelta = x * 100
         vmcanvas.create_text(45 + xdelta, 10, text='UD ' + str(x))
-        vmcanvas.create_line(130 + xdelta, 20, 130 + xdelta, 180, dash=(4, 2))
+        vmcanvas.create_line(132 + xdelta, 20, 132 + xdelta, 180, dash=(4, 2))
     vmcanvas.create_text(445, 10, text='UD 4')
 
 # draw a heat map for the VMSS VMs - uses the set_domain_lists() function from the vmss class
@@ -228,7 +229,7 @@ canvas_bgcolor = '#F0FFFF' # azure
 btncolor = '#F8F8FF'
 root = tk.Tk()  # Makes the window
 root.wm_title("VM Scale Set Editor")
-root.geometry('540x108')
+root.geometry('540x128')
 root.configure(background = frame_bgcolor)
 root.wm_iconbitmap('vm.ico')
 topframe = tk.Frame(root, bg = frame_bgcolor)
@@ -284,19 +285,16 @@ def displayvmss(vmssname):
     capacitytext.grid(row=0, column=3, sticky=tk.W)
     capacitytext.delete(0, tk.END)
     capacitytext.insert(0, str(current_vmss.capacity))
-
     scalebtn = tk.Button(topframe, text="Scale", command=scalevmss, width=btnwidth, bg = btncolor)
     scalebtn.grid(row=0, column=4, sticky=tk.W)
+
     # VMSS properties - row 1
     vmsizetext.grid(row=0, column=3, sticky=tk.W)
     vmsizetext.delete(0, tk.END)
     vmsizetext.insert(0, str(current_vmss.vmsize))
-
-    offerlabel = tk.Label(topframe, text=current_vmss.offer, width=btnwidth, justify=tk.LEFT, bg = frame_bgcolor)
     vmsizetext.grid(row=1, column=0, sticky=tk.W)
+    offerlabel = tk.Label(topframe, text=current_vmss.offer, width=btnwidth, justify=tk.LEFT, bg = frame_bgcolor)
     offerlabel.grid(row=1, column=1, sticky=tk.W)
-
-    # OS version - row 2
     skulabel = tk.Label(topframe, text=current_vmss.sku, width=btnwidth, justify=tk.LEFT, bg = frame_bgcolor)
     skulabel.grid(row=1, column=2, sticky=tk.W)
     versiontext.grid(row=1, column=3, sticky=tk.W)
@@ -304,17 +302,32 @@ def displayvmss(vmssname):
     versiontext.insert(0, current_vmss.version)
     updatebtn = tk.Button(topframe, text='Update model', command=updatevmss, width=btnwidth, bg = btncolor)
     updatebtn.grid(row=1, column=4, sticky=tk.W)
-    # vmss operations - row 4
+
+    # more VMSS properties - row 2
+    if current_vmss.overprovision == True:
+        optext = "overprovision: true"
+    else:
+        optext = "overprovision: false"
+    overprovisionlabel = tk.Label(topframe, text=optext, width=btnwidth, justify=tk.LEFT, bg=frame_bgcolor)
+    overprovisionlabel.grid(row=2, column=0, sticky=tk.W)
+    upgradepolicylabel = tk.Label(topframe, text=current_vmss.upgradepolicy + ' upgrade', width=btnwidth, justify=tk.LEFT, bg=frame_bgcolor)
+    upgradepolicylabel.grid(row=2, column=1, sticky=tk.W)
+    adminuserlabel = tk.Label(topframe, text=current_vmss.adminuser, width=btnwidth, justify=tk.LEFT, bg=frame_bgcolor)
+    adminuserlabel.grid(row=2, column=2, sticky=tk.W)
+    compnameprefixlabel = tk.Label(topframe, text='Prefix: ' + current_vmss.nameprefix, width=btnwidth, justify=tk.LEFT, bg=frame_bgcolor)
+    compnameprefixlabel.grid(row=2, column=3, sticky=tk.W)
+
+    # vmss operations - row 3
     onbtn = tk.Button(topframe, text="Start", command=poweronvmss, width=btnwidth, bg = btncolor)
-    onbtn.grid(row=4, column=0, sticky=tk.W)
+    onbtn.grid(row=3, column=0, sticky=tk.W)
     onbtn = tk.Button(topframe, text="Retart", command=restartvmss, width=btnwidth, bg = btncolor)
-    onbtn.grid(row=4, column=1, sticky=tk.W)
+    onbtn.grid(row=3, column=1, sticky=tk.W)
     offbtn = tk.Button(topframe, text="Power off", command=poweroffvmss, width=btnwidth, bg = btncolor)
-    offbtn.grid(row=4, column=2, sticky=tk.W)
+    offbtn.grid(row=3, column=2, sticky=tk.W)
     deallocbtn = tk.Button(topframe, text="Stop Dealloc", command=deallocvmss, width=btnwidth, bg = btncolor)
-    deallocbtn.grid(row=4, column=3, sticky=tk.W)
+    deallocbtn.grid(row=3, column=3, sticky=tk.W)
     detailsbtn = tk.Button(topframe, text="Details", command=vmssdetails, width=btnwidth, bg = btncolor)
-    detailsbtn.grid(row=4, column=4, sticky=tk.W)
+    detailsbtn.grid(row=3, column=4, sticky=tk.W)
     # status line
     statustext.pack()
     statusmsg(current_vmss.status)
@@ -365,7 +378,7 @@ def deallocvmss():
 
 def vmssdetails():
     # VMSS VM canvas - middle frame
-    root.geometry('540x390')
+    root.geometry('540x410')
     vmcanvas.pack()
     current_vmss.init_vm_instance_view()
     draw_vms(current_vmss.vm_instance_view)

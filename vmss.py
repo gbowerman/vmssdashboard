@@ -12,10 +12,14 @@ class vmss():
         self.access_token = access_token
 
         self.model = vmssmodel
+        self.adminuser = vmssmodel['properties']['virtualMachineProfile']['osProfile']['adminUsername']
         self.capacity = vmssmodel['sku']['capacity']
         self.location = vmssmodel['location']
-        self.vmsize = vmssmodel['sku']['name']
+        self.nameprefix = vmssmodel['properties']['virtualMachineProfile']['osProfile']['computerNamePrefix']
+        self.overprovision = vmssmodel['properties']['overprovision']
         self.tier = vmssmodel['sku']['tier']
+        self.upgradepolicy = vmssmodel['properties']['upgradePolicy']['mode']
+        self.vmsize = vmssmodel['sku']['name']
 
         # if it's a platform image, the model will have these
         if 'imageReference' in vmssmodel['properties']['virtualMachineProfile']['storageProfile']:
