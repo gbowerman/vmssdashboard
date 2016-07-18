@@ -320,7 +320,7 @@ def displayvmss(vmssname):
     # vmss operations - row 3
     onbtn = tk.Button(topframe, text="Start", command=poweronvmss, width=btnwidth, bg = btncolor)
     onbtn.grid(row=3, column=0, sticky=tk.W)
-    onbtn = tk.Button(topframe, text="Retart", command=restartvmss, width=btnwidth, bg = btncolor)
+    onbtn = tk.Button(topframe, text="Restart", command=restartvmss, width=btnwidth, bg = btncolor)
     onbtn.grid(row=3, column=1, sticky=tk.W)
     offbtn = tk.Button(topframe, text="Power off", command=poweroffvmss, width=btnwidth, bg = btncolor)
     offbtn.grid(row=3, column=2, sticky=tk.W)
