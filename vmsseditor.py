@@ -222,14 +222,13 @@ def poweroffvm():
 
 # begin tkinter components
 btnwidth = 14
-btnwidthud = 14
 entrywidth = 15
-frame_bgcolor = '#87CE80' # before #008080
+frame_bgcolor = '#B0E0E6' # before #008080
 canvas_bgcolor = '#F0FFFF' # azure
-btncolor = '#FF8C00'
+btncolor = '#F8F8FF'
 root = tk.Tk()  # Makes the window
 root.wm_title("VM Scale Set Editor")
-root.geometry('550x108')
+root.geometry('540x108')
 root.configure(background = frame_bgcolor)
 root.wm_iconbitmap('vm.ico')
 topframe = tk.Frame(root, bg = frame_bgcolor)
@@ -245,26 +244,27 @@ udlabel = tk.Label(vmframe, text='UD:', bg = frame_bgcolor)
 udoption = tk.OptionMenu(vmframe, selectedud, '0', '1', '2', '3', '4')
 udoption.config(width=6, bg = btncolor, activebackground = btncolor)
 udoption["menu"].config(bg=btncolor)
-reimagebtnud = tk.Button(vmframe, text='Reimage', command=reimageud, width=btnwidthud, bg = btncolor)
-upgradebtnud = tk.Button(vmframe, text='Upgrade', command=upgradeud, width=btnwidthud, bg = btncolor)
-startbtnud = tk.Button(vmframe, text='Start', command=startud, width=btnwidthud, bg = btncolor)
-powerbtnud = tk.Button(vmframe, text='Power off', command=powerud, width=btnwidthud, bg = btncolor)
+reimagebtnud = tk.Button(vmframe, text='Reimage', command=reimageud, width=btnwidth, bg = btncolor)
+upgradebtnud = tk.Button(vmframe, text='Upgrade', command=upgradeud, width=btnwidth, bg = btncolor)
+startbtnud = tk.Button(vmframe, text='Start', command=startud, width=btnwidth, bg = btncolor)
+powerbtnud = tk.Button(vmframe, text='Power off', command=powerud, width=btnwidth, bg = btncolor)
 # VM operations - VM frame
 vmlabel = tk.Label(vmframe, text='VM:', bg = frame_bgcolor)
 vmtext = tk.Entry(vmframe, width=11, bg = canvas_bgcolor)
-reimagebtn = tk.Button(vmframe, text='Reimage', command=reimagevm, width=btnwidthud, bg = btncolor)
-vmupgradebtn = tk.Button(vmframe, text='Upgrade', command=upgradevm, width=btnwidthud, bg = btncolor)
-vmdeletebtn = tk.Button(vmframe, text='Delete', command=deletevm, width=btnwidthud, bg = btncolor)
-vmstartbtn = tk.Button(vmframe, text='Start', command=startvm, width=btnwidthud, bg = btncolor)
-vmrestartbtn = tk.Button(vmframe, text='Restart', command=restartvm, width=btnwidthud, bg = btncolor)
-vmdeallocbtn = tk.Button(vmframe, text='Dealloc', command=deallocvm, width=btnwidthud, bg = btncolor)
-vmpoweroffbtn = tk.Button(vmframe, text='Power off', command=poweroffvm, width=btnwidthud, bg = btncolor)
+reimagebtn = tk.Button(vmframe, text='Reimage', command=reimagevm, width=btnwidth, bg = btncolor)
+vmupgradebtn = tk.Button(vmframe, text='Upgrade', command=upgradevm, width=btnwidth, bg = btncolor)
+vmdeletebtn = tk.Button(vmframe, text='Delete', command=deletevm, width=btnwidth, bg = btncolor)
+vmstartbtn = tk.Button(vmframe, text='Start', command=startvm, width=btnwidth, bg = btncolor)
+vmrestartbtn = tk.Button(vmframe, text='Restart', command=restartvm, width=btnwidth, bg = btncolor)
+vmdeallocbtn = tk.Button(vmframe, text='Dealloc', command=deallocvm, width=btnwidth, bg = btncolor)
+vmpoweroffbtn = tk.Button(vmframe, text='Power off', command=poweroffvm, width=btnwidth, bg = btncolor)
 vmframe.pack(fill=tk.X)
 
 baseframe.pack(fill=tk.X)
 
 versiontext = tk.Entry(topframe, width=entrywidth, bg = canvas_bgcolor)
 capacitytext = tk.Entry(topframe, width=entrywidth, bg = canvas_bgcolor)
+vmsizetext = tk.Entry(topframe, width=entrywidth, bg = canvas_bgcolor)
 statustext = tk.Text(baseframe, height=1, width=67, bg = canvas_bgcolor)
 
 
@@ -288,10 +288,12 @@ def displayvmss(vmssname):
     scalebtn = tk.Button(topframe, text="Scale", command=scalevmss, width=btnwidth, bg = btncolor)
     scalebtn.grid(row=0, column=4, sticky=tk.W)
     # VMSS properties - row 1
-    sizelabel = tk.Label(topframe, text=current_vmss.vmsize, width=btnwidth, justify=tk.LEFT, bg = frame_bgcolor)
+    vmsizetext.grid(row=0, column=3, sticky=tk.W)
+    vmsizetext.delete(0, tk.END)
+    vmsizetext.insert(0, str(current_vmss.vmsize))
 
     offerlabel = tk.Label(topframe, text=current_vmss.offer, width=btnwidth, justify=tk.LEFT, bg = frame_bgcolor)
-    sizelabel.grid(row=1, column=0, sticky=tk.W)
+    vmsizetext.grid(row=1, column=0, sticky=tk.W)
     offerlabel.grid(row=1, column=1, sticky=tk.W)
 
     # OS version - row 2
@@ -324,13 +326,13 @@ def scalevmss():
     current_vmss.scale(newcapacity)
     statusmsg(current_vmss.status)
     refresh_thread_running = True
-    # displayvmss()
 
 
 def updatevmss():
     global refresh_thread_running
     newversion = versiontext.get()
-    current_vmss.update_version(newversion)
+    newvmsize = vmsizetext.get()
+    current_vmss.update_model(newversion, newvmsize)
     statusmsg(current_vmss.status)
     refresh_thread_running = True
 
@@ -363,7 +365,7 @@ def deallocvmss():
 
 def vmssdetails():
     # VMSS VM canvas - middle frame
-    root.geometry('550x390')
+    root.geometry('540x390')
     vmcanvas.pack()
     current_vmss.init_vm_instance_view()
     draw_vms(current_vmss.vm_instance_view)

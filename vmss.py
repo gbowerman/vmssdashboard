@@ -51,20 +51,28 @@ class vmss():
     def update_token(self, access_token):
         self.access_token = access_token
 
-    # update the VMSS model version property
-    def update_version(self, newversion):
+    # update the VMSS model with any updated properties - extend this to include updatePolicy etc.
+    def update_model(self, newversion, newvmsize):
+        changes = 0
         if self.version != newversion:
+            changes += 1
             if self.image_type == 'platform':
                 self.model['properties']['virtualMachineProfile']['storageProfile']['imageReference']['version'] = newversion
             else:
                 self.model['properties']['virtualMachineProfile']['storageProfile']['osDisk']['image']['uri'] = newversion
+        if self.vmsize != newvmsize:
+            changes += 1
+            self.model['sku']['name'] = newvmsize # to do - add a check that the new vm size matches the tier
             self.version = newversion
+            self.vmsize = newvmsize
+        if changes == 0:
+            self.status = 'VMSS model is unchanged, skipping update'
+        else:
             # put the vmss model
             updateresult = azurerm.update_vmss(self.access_token, self.sub_id, self.rgname, self.name,
                                                json.dumps(self.model))
             self.status = updateresult
-        else:
-            self.status = 'Versions are the same, skipping update'
+
 
     # set the VMSS to a new capacity
     def scale(self, capacity):
