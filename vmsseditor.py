@@ -22,10 +22,10 @@ btnwidth = 14
 entrywidth = 15
 if os.name == 'mac':
     geometry1 = '740x328'
-    geometry2 = '740x610'
+    geometry2 = '740x640'
 else:
     geometry1 = '540x128'
-    geometry2 = '540x410'
+    geometry2 = '540x440'
 frame_bgcolor = '#B0E0E6'
 canvas_bgcolor = '#F0FFFF'
 btncolor = '#F8F8FF'
@@ -172,6 +172,48 @@ def upgradeud():
     refresh_thread_running = True
 
 
+def getfds():
+    fd = int(selectedfd.get())
+    fdinstancelist = []
+    # print(json.dumps(current_vmss.fd_dict))
+    for entry in current_vmss.fd_dict[fd]:
+        fdinstancelist.append(entry[0])  # entry[0] is the instance id
+    # build list of UDs
+    return fdinstancelist
+
+
+def startfd():
+    global refresh_thread_running
+    fdinstancelist = getfds()
+    current_vmss.startvm(json.dumps(fdinstancelist))
+    statusmsg(current_vmss.status)
+    refresh_thread_running = True
+
+
+def powerfd():
+    global refresh_thread_running
+    fdinstancelist = getfds()
+    current_vmss.poweroffvm(json.dumps(fdinstancelist))
+    statusmsg(current_vmss.status)
+    refresh_thread_running = True
+
+
+def reimagefd():
+    global refresh_thread_running
+    fdinstancelist = getfds()
+    current_vmss.reimagevm(json.dumps(fdinstancelist))
+    statusmsg(current_vmss.status)
+    refresh_thread_running = True
+
+
+def upgradefd():
+    global refresh_thread_running
+    fdinstancelist = getfds()
+    current_vmss.upgradevm(json.dumps(fdinstancelist))
+    statusmsg(current_vmss.status)
+    refresh_thread_running = True
+
+
 def reimagevm():
     global refresh_thread_running
     vmid = vmtext.get()
@@ -244,6 +286,7 @@ root.wm_iconbitmap('vm.ico')
 topframe = tk.Frame(root, bg = frame_bgcolor)
 middleframe = tk.Frame(root, bg = frame_bgcolor)
 selectedud = tk.StringVar()
+selectedfd = tk.StringVar()
 vmcanvas = tk.Canvas(middleframe, height=195, width=530, bg = canvas_bgcolor)
 vmframe = tk.Frame(root, bg = frame_bgcolor)
 baseframe = tk.Frame(root, bg = frame_bgcolor)
@@ -258,6 +301,15 @@ reimagebtnud = tk.Button(vmframe, text='Reimage', command=reimageud, width=btnwi
 upgradebtnud = tk.Button(vmframe, text='Upgrade', command=upgradeud, width=btnwidth, bg = btncolor)
 startbtnud = tk.Button(vmframe, text='Start', command=startud, width=btnwidth, bg = btncolor)
 powerbtnud = tk.Button(vmframe, text='Power off', command=powerud, width=btnwidth, bg = btncolor)
+# FD operations - FD frame
+fdlabel = tk.Label(vmframe, text='FD:', bg = frame_bgcolor)
+fdoption = tk.OptionMenu(vmframe, selectedfd, '0', '1', '2', '3', '4')
+fdoption.config(width=6, bg = btncolor, activebackground = btncolor)
+fdoption["menu"].config(bg=btncolor)
+reimagebtnfd = tk.Button(vmframe, text='Reimage', command=reimagefd, width=btnwidth, bg = btncolor)
+upgradebtnfd = tk.Button(vmframe, text='Upgrade', command=upgradefd, width=btnwidth, bg = btncolor)
+startbtnfd = tk.Button(vmframe, text='Start', command=startfd, width=btnwidth, bg = btncolor)
+powerbtnfd = tk.Button(vmframe, text='Power off', command=powerfd, width=btnwidth, bg = btncolor)
 # VM operations - VM frame
 vmlabel = tk.Label(vmframe, text='VM:', bg = frame_bgcolor)
 vmtext = tk.Entry(vmframe, width=11, bg = canvas_bgcolor)
@@ -399,15 +451,21 @@ def vmssdetails():
     upgradebtnud.grid(row=0, column=3, sticky=tk.W)
     startbtnud.grid(row=0, column=4, sticky=tk.W)
     powerbtnud.grid(row=0, column=5, sticky=tk.W)
-    vmlabel.grid(row=1, column=0, sticky=tk.W)
-    vmtext.grid(row=1, column=1, sticky=tk.W)
-    reimagebtn.grid(row=1, column=2, sticky=tk.W)
-    vmupgradebtn.grid(row=1, column=3, sticky=tk.W)
-    vmstartbtn.grid(row=1, column=4, sticky=tk.W)
-    vmpoweroffbtn.grid(row=1, column=5, sticky=tk.W)
-    vmdeletebtn.grid(row=2, column=2, sticky=tk.W)
-    vmrestartbtn.grid(row=2, column=3, sticky=tk.W)
-    vmdeallocbtn.grid(row=2, column=4, sticky=tk.W)
+    fdlabel.grid(row=1, column=0, sticky=tk.W)
+    fdoption.grid(row=1, column=1, sticky=tk.W)
+    reimagebtnfd.grid(row=1, column=2, sticky=tk.W)
+    upgradebtnfd.grid(row=1, column=3, sticky=tk.W)
+    startbtnfd.grid(row=1, column=4, sticky=tk.W)
+    powerbtnfd.grid(row=1, column=5, sticky=tk.W)
+    vmlabel.grid(row=2, column=0, sticky=tk.W)
+    vmtext.grid(row=2, column=1, sticky=tk.W)
+    reimagebtn.grid(row=2, column=2, sticky=tk.W)
+    vmupgradebtn.grid(row=2, column=3, sticky=tk.W)
+    vmstartbtn.grid(row=2, column=4, sticky=tk.W)
+    vmpoweroffbtn.grid(row=2, column=5, sticky=tk.W)
+    vmdeletebtn.grid(row=3, column=2, sticky=tk.W)
+    vmrestartbtn.grid(row=3, column=3, sticky=tk.W)
+    vmdeallocbtn.grid(row=3, column=4, sticky=tk.W)
     statusmsg(current_vmss.status)
 
 # start by listing VM Scale Sets
@@ -416,6 +474,7 @@ selectedvmss = tk.StringVar()
 if len(vmsslist) > 0:
     selectedvmss.set(vmsslist[0])
     selectedud.set('0')
+    selectedfd.set('0')
     displayvmss(vmsslist[0])
     # create top level GUI components
     vmsslistoption = tk.OptionMenu(topframe, selectedvmss, *vmsslist, command=displayvmss)
