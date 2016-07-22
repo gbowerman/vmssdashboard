@@ -8,6 +8,7 @@ License: MIT (see LICENSE.txt file for details)
 """
 
 import json
+import os
 import sys
 import threading
 import time
@@ -15,6 +16,19 @@ import tkinter as tk
 from tkinter import messagebox
 import subscription
 import vmss
+
+# size and color defaults
+btnwidth = 14
+entrywidth = 15
+if os.name == 'mac':
+    geometry1 = '740x328'
+    geometry2 = '740x610'
+else:
+    geometry1 = '540x128'
+    geometry2 = '540x410'
+frame_bgcolor = '#B0E0E6'
+canvas_bgcolor = '#F0FFFF'
+btncolor = '#F8F8FF'
 
 # Load Azure app defaults
 try:
@@ -222,14 +236,9 @@ def poweroffvm():
 
 
 # begin tkinter components
-btnwidth = 14
-entrywidth = 15
-frame_bgcolor = '#B0E0E6' # before #008080
-canvas_bgcolor = '#F0FFFF' # azure
-btncolor = '#F8F8FF'
 root = tk.Tk()  # Makes the window
 root.wm_title("VM Scale Set Editor")
-root.geometry('540x128')
+root.geometry(geometry1)
 root.configure(background = frame_bgcolor)
 root.wm_iconbitmap('vm.ico')
 topframe = tk.Frame(root, bg = frame_bgcolor)
@@ -380,7 +389,7 @@ def deallocvmss():
 
 def vmssdetails():
     # VMSS VM canvas - middle frame
-    root.geometry('540x410')
+    root.geometry(geometry2)
     vmcanvas.pack()
     current_vmss.init_vm_instance_view()
     draw_vms(current_vmss.vm_instance_view)
