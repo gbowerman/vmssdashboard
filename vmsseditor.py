@@ -282,7 +282,7 @@ root = tk.Tk()  # Makes the window
 root.wm_title("VM Scale Set Editor")
 root.geometry(geometry1)
 root.configure(background = frame_bgcolor)
-root.wm_iconbitmap('vm.ico')
+root.wm_iconbitmap('vmss.ico')
 topframe = tk.Frame(root, bg = frame_bgcolor)
 middleframe = tk.Frame(root, bg = frame_bgcolor)
 selectedud = tk.StringVar()
