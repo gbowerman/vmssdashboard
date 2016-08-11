@@ -92,19 +92,19 @@ def assign_color_to_power_state(powerstate):
 # draw a grid to delineate fault domains and update domains on the VMSS heatmap
 def draw_grid():
     vmcanvas.delete("all")
-    # horizontal lines for FDs
+    # horizontal lines for UDs
     for y in range(4):
         ydelta = y * 35
-        vmcanvas.create_text(15, ydelta + 30, text='FD ' + str(y))
+        vmcanvas.create_text(15, ydelta + 30, text='UD ' + str(y))
         vmcanvas.create_line(35, 50 + ydelta, 520, 50 + ydelta)
-    vmcanvas.create_text(15, 170, text='FD 4')
+    vmcanvas.create_text(15, 170, text='UD 4')
 
-    # vertical lines for UDs
+    # vertical lines for FDs
     for x in range(4):
         xdelta = x * 100
-        vmcanvas.create_text(45 + xdelta, 10, text='UD ' + str(x))
+        vmcanvas.create_text(45 + xdelta, 10, text='FD ' + str(x))
         vmcanvas.create_line(132 + xdelta, 20, 132 + xdelta, 180, dash=(4, 2))
-    vmcanvas.create_text(445, 10, text='UD 4')
+    vmcanvas.create_text(445, 10, text='FD 4')
 
 # draw a heat map for the VMSS VMs - uses the set_domain_lists() function from the vmss class
 def draw_vms(vmssinstances):
@@ -121,13 +121,13 @@ def draw_vms(vmssinstances):
         ud = vm[2]
         powerstate = vm[3]
         statuscolor = assign_color_to_power_state(powerstate)
-        xdelta = (ud * 100) + (matrix[fd][ud] * 20)
-        ydelta = fd * 35
+        xdelta = (fd * 100) + (matrix[ud][fd] * 20)
+        ydelta = ud * 35
         # colored circle represents machine power state
         vmcanvas.create_oval(xval + xdelta, yval + ydelta, xval + xdelta + diameter, yval + ydelta + diameter, fill=statuscolor)
         # print VM ID under each circle
         vmcanvas.create_text(xval + xdelta + 7, yval + ydelta + 22, text=instance_id)
-        matrix[fd][ud] += 1
+        matrix[ud][fd] += 1
 
 
 def getuds():
