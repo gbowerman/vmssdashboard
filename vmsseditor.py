@@ -65,11 +65,12 @@ def refresh_loop():
 # rolling upgrade thread
 def rolling_upgrade_engine(batchsize, pausetime, vmbyfd_list):
     global refresh_thread_running
-    batch_count = 1 # to give user a running status update
+    batch_count = 0 # to give user a running status update
     # loop through all VMs
     num_vms_to_upgrade = len(vmbyfd_list)
     upgrade_index = 0 # running count of VMs updated or in batch to update
     while upgrade_index < num_vms_to_upgrade:
+        batch_count += 1
         # determine the next batch of VM IDs
         batch_list = []
         for batch_index in range(batchsize):
