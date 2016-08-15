@@ -65,6 +65,7 @@ def refresh_loop():
 # rolling upgrade thread
 def rolling_upgrade_engine(batchsize, pausetime, vmbyfd_list):
     global refresh_thread_running
+    batch_count = 1 # to give user a running status update
     # loop through all VMs
     num_vms_to_upgrade = len(vmbyfd_list)
     upgrade_index = 0 # running count of VMs updated or in batch to update
@@ -78,18 +79,19 @@ def rolling_upgrade_engine(batchsize, pausetime, vmbyfd_list):
                 break
 
         # do an upgrade on the batch
-        print('Upgrading batch')
+        statusmsg('Upgrading batch ' + str(batch_count))
         current_vmss.upgradevm(json.dumps(batch_list))
-        statusmsg(current_vmss.status)
+        statusmsg('Batch ' + str(batch_count) + ' status: ' + current_vmss.status.text)
         refresh_thread_running = True
 
         # wait for upgrade to complete
-        print('Starting refresh wait')
+        statusmsg('Batch ' + str(batch_count) + ' upgrade in progess')
         while (refresh_thread_running == True):
             time.sleep(1)
-        print('Batch complete')
+        print('Batch ' + str(batch_count) + ' complete')
         # wait for pausetime
         time.sleep(pausetime)
+    statusmsg('Rolling upgrade complete. Batch count: ' + str(batch_count))
 
 # start timer thread
 timer_thread = threading.Thread(target=subidkeepalive, args=())
