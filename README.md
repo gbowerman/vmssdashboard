@@ -13,9 +13,10 @@ VMSS Editor is a Python/Tkinter script to manage VM Scale Sets. You can use it t
 - Manually scale a VM Scale Set in or out.
 - Upgrade the version of a platform image, or upgrade a custom image.
 - Vertically scale - increase of decrease VMs size and roll it out across the set.
+- Perform a rolling upgrade of image or VM size across scale set
 - Start/Restart/Power off/Stop dealloc a scale set.
 - View scale set VMs in a heat map showing fault domains and update domains.
-- Operate on update domains: Upgrade/Reimage/Start/Power off.
+- Operate on fault domains: Upgrade/Reimage/Start/Power off.
 - Operate on individual VMs: Upgrade/Reimage/Start/Power off/Delete/Restart/Dealloc. 
 
 
@@ -34,6 +35,14 @@ To use these apps (and in general to access Azure Resource Manager from a progra
 
 [service-principle]: https://azure.microsoft.com/en-us/documentation/articles/resource-group-authenticate-service-principal/ - make sure you create it with at least "Contributor" rights, not "Reader".
 [python-auth]: https://msftstack.wordpress.com/2016/01/05/azure-resource-manager-authentication-with-python
+
+### Performing a rolling upgrade
+
+The rolling upgrade feature was added to show how scale set operations like "manualUpgrade" can be combined to form a semi-automated roll-out of VM updates without disrupting application availability.
+
+Here's a 2 minute video demo of the rolling upgrade feature in action..
+
+[![rolling upgrade demo](https://img.youtube.com/vi/LuEzErQF-Io/0.jpg)](https://www.youtube.com/watch?v=LuEzErQF-Io)
 
 ## VMSS Dashboard
 Dashboard to show Azure VM Scale Set status and properties. 
