@@ -332,6 +332,7 @@ vmpoweroffbtn = tk.Button(vmframe, text='Power off', command=poweroffvm, width=b
 vmframe.pack(fill=tk.X)
 baseframe.pack(fill=tk.X)
 
+skutext = tk.Entry(topframe, width=entrywidth, bg = canvas_bgcolor)
 versiontext = tk.Entry(topframe, width=entrywidth, bg = canvas_bgcolor)
 capacitytext = tk.Entry(topframe, width=entrywidth, bg = canvas_bgcolor)
 vmsizetext = tk.Entry(topframe, width=entrywidth, bg = canvas_bgcolor)
@@ -364,8 +365,9 @@ def displayvmss(vmssname):
     vmsizetext.grid(row=1, column=0, sticky=tk.W)
     offerlabel = tk.Label(topframe, text=current_vmss.offer, width=btnwidth, justify=tk.LEFT, bg = frame_bgcolor)
     offerlabel.grid(row=1, column=1, sticky=tk.W)
-    skulabel = tk.Label(topframe, text=current_vmss.sku, width=btnwidth, justify=tk.LEFT, bg = frame_bgcolor)
-    skulabel.grid(row=1, column=2, sticky=tk.W)
+    skutext.grid(row=1, column=2, sticky=tk.W)
+    skutext.delete(0, tk.END)
+    skutext.insert(0, current_vmss.sku)
     versiontext.grid(row=1, column=3, sticky=tk.W)
     versiontext.delete(0, tk.END)
     versiontext.insert(0, current_vmss.version)
@@ -413,9 +415,10 @@ def scalevmss():
 
 def updatevmss():
     global refresh_thread_running
+    newsku = skutext.get()
     newversion = versiontext.get()
     newvmsize = vmsizetext.get()
-    current_vmss.update_model(newversion, newvmsize)
+    current_vmss.update_model(newsku=newsku, newversion=newversion, newvmsize=newvmsize)
     statusmsg(current_vmss.status)
     refresh_thread_running = True
 

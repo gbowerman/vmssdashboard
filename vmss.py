@@ -56,10 +56,18 @@ class vmss():
         self.access_token = access_token
 
     # update the VMSS model with any updated properties - extend this to include updatePolicy etc.
-    def update_model(self, newversion, newvmsize):
+    def update_model(self, newsku, newversion, newvmsize):
         changes = 0
+        if self.sku != newsku:
+            if self.image_type == 'platform':  # sku not relevant for custom image
+                changes += 1
+                self.model['properties']['virtualMachineProfile']['storageProfile']['imageReference']['sku'] = newsku
+                self.sku = newsku
+            else:
+                self.status = 'You cannot change sku setting for custom image'
         if self.version != newversion:
             changes += 1
+            self.version = newversion
             if self.image_type == 'platform':
                 self.model['properties']['virtualMachineProfile']['storageProfile']['imageReference']['version'] = newversion
             else:
@@ -67,7 +75,6 @@ class vmss():
         if self.vmsize != newvmsize:
             changes += 1
             self.model['sku']['name'] = newvmsize # to do - add a check that the new vm size matches the tier
-            self.version = newversion
             self.vmsize = newvmsize
         if changes == 0:
             self.status = 'VMSS model is unchanged, skipping update'
@@ -110,6 +117,7 @@ class vmss():
         self.vm_instance_view = \
             azurerm.list_vmss_vm_instance_view(self.access_token, self.sub_id, self.rgname, self.name)
 
+    # operations on individual VMs or groups of VMs in a scale set
     # operations on individual VMs or groups of VMs in a scale set
     def reimagevm(self, vmstring):
         result = azurerm.reimage_vmss_vms(self.access_token, self.sub_id, self.rgname, self.name, vmstring)
