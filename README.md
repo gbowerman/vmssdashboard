@@ -11,6 +11,7 @@ GUI editor to view and manage Azure VM Scale Sets.
 VMSS Editor is a Python/Tkinter script to manage VM Scale Sets. You can use it to:
 - View VM Scale Set properties and status.
 - Manually scale a VM Scale Set in or out.
+- Upgrade the sku of a platform image.
 - Upgrade the version of a platform image, or upgrade a custom image.
 - Vertically scale - increase of decrease VMs size and roll it out across the set.
 - Perform a rolling upgrade of image or VM size across scale set
