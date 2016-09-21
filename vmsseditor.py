@@ -86,7 +86,7 @@ def rolling_upgrade_engine(batchsize, pausetime, vmbyfd_list):
         refresh_thread_running = True
 
         # wait for upgrade to complete
-        statusmsg('Batch ' + str(batch_count) + ' upgrade in progess')
+        statusmsg('Batch ' + str(batch_count) + ' upgrade in progress')
         while (refresh_thread_running == True):
             time.sleep(1)
         print('Batch ' + str(batch_count) + ' complete')
