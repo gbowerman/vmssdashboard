@@ -45,15 +45,13 @@ Here's a 2 minute video demo of the rolling upgrade feature in action..
 
 [![rolling upgrade demo](https://img.youtube.com/vi/LuEzErQF-Io/0.jpg)](https://www.youtube.com/watch?v=LuEzErQF-Io)
 
-## VMSS Dashboard
+
+## VMSS Dashboard - discontinued 
 Dashboard to show Azure VM Scale Set status and properties. 
 
-Note: this tool needs a bit more work in order to comfortably scale to more than 10 or so VMs. In particular it needs to display smaller VM icons, and use a more efficient call to get VM instance views. You might want to consider using the more recent VMSS Editor above instead.
+Note: this tool was an early demo experiment and needs more work in order to comfortably scale to more than 10 or so VMs. In particular it needs to display smaller VM icons, and use a more efficient call to get VM instance views. You might want to consider using the more recent VMSS Editor above instead.
 
-Also note: If you like VMSS Dashboards, make sure you also take a look at [ASCii VMSS Dashboard](https://github.com/msleal/asciivmssdashboard) by Marcelo Leal - this is an amazing ASCii based dashboard for monitoring VM Scale Sets, with many more functions than VMSS Dashboard.
-
-
-![Image of VMSS Dashboard](./docs/vmssdash-img.png)
+Note: If you like VMSS Dashboards, make sure you also take a look at [ASCii VMSS Dashboard](https://github.com/msleal/asciivmssdashboard) by Marcelo Leal - this is an amazing ASCii based dashboard for monitoring VM Scale Sets, with many more functions than VMSS Dashboard.
 
 
 ### Installation
