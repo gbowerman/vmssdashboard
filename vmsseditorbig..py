@@ -1,7 +1,8 @@
 # VMSS Editor - Azure VM Scale Set management tool
-# vmsseditor.py 
-# - GUI component of scale set editor, tkinter based
-# - uses vmss.py and subscription.py classes for Azure operations
+# vmsseditorbig.py 
+#  - GUI component of scale set editor, tkinter based
+#  - This is a test version to handle large scale sets which are in limited preview
+#  - uses vmss.py and subscription.py classes for Azure operations
 
 import json
 import os
@@ -18,11 +19,13 @@ btnwidth = 14
 entrywidth = 15
 if os.name == 'mac':
     geometry1 = '740x328'
-    geometry2 = '740x640'
+    geometry2 = '740x970'
 else:
     geometry1 = '540x128'
-    geometry2 = '540x440'
+    geometry2 = '540x770'
 frame_bgcolor = '#B0E0E6'
+canvas_height = 520
+canvas_width = 530
 canvas_bgcolor = '#F0FFFF'
 btncolor = '#F8F8FF'
 
@@ -121,18 +124,18 @@ def assign_color_to_power_state(powerstate):
 def draw_grid():
     vmcanvas.delete("all")
     # horizontal lines for UDs
-    for y in range(4):
-        ydelta = y * 35
-        vmcanvas.create_text(15, ydelta + 30, text='UD ' + str(y))
-        vmcanvas.create_line(35, 50 + ydelta, 520, 50 + ydelta)
-    vmcanvas.create_text(15, 170, text='UD 4')
+    for y in range(5):
+        ydelta = y * 100
+        vmcanvas.create_text(15, ydelta + 25, text='UD ' + str(y))
+        if (y < 4):
+            vmcanvas.create_line(35, 110 + ydelta, 520, 110 + ydelta)
 
     # vertical lines for FDs
-    for x in range(4):
+    for x in range(5):
         xdelta = x * 100
         vmcanvas.create_text(45 + xdelta, 10, text='FD ' + str(x))
-        vmcanvas.create_line(132 + xdelta, 20, 132 + xdelta, 180, dash=(4, 2))
-    vmcanvas.create_text(445, 10, text='FD 4')
+        if (x < 4):
+            vmcanvas.create_line(132 + xdelta, 20, 132 + xdelta, 500, dash=(4, 2))
 
 # draw a heat map for the VMSS VMs - uses the set_domain_lists() function from the vmss class
 def draw_vms(vmssinstances):
@@ -149,8 +152,15 @@ def draw_vms(vmssinstances):
         ud = vm[2]
         powerstate = vm[3]
         statuscolor = assign_color_to_power_state(powerstate)
-        xdelta = (fd * 100) + (matrix[ud][fd] * 20)
-        ydelta = ud * 35
+        if matrix[ud][fd] > 9:
+            xdelta = (fd * 100) + ((matrix[ud][fd] - 10) * 20)
+            ydelta = (ud * 100) + 60   
+        elif matrix[ud][fd] > 4:
+            xdelta = (fd * 100) + ((matrix[ud][fd] - 5) * 20)
+            ydelta = (ud * 100) + 30 
+        else:
+            xdelta = (fd * 100) + (matrix[ud][fd] * 20)
+            ydelta = ud * 100
         # colored circle represents machine power state
         vmcanvas.create_oval(xval + xdelta, yval + ydelta, xval + xdelta + diameter, yval + ydelta + diameter, fill=statuscolor)
         # print VM ID under each circle
@@ -288,7 +298,7 @@ root.wm_iconbitmap('vmss.ico')
 topframe = tk.Frame(root, bg = frame_bgcolor)
 middleframe = tk.Frame(root, bg = frame_bgcolor)
 selectedfd = tk.StringVar()
-vmcanvas = tk.Canvas(middleframe, height=195, width=530, bg = canvas_bgcolor)
+vmcanvas = tk.Canvas(middleframe, height=canvas_height, width=canvas_width, bg = canvas_bgcolor)
 vmframe = tk.Frame(root, bg = frame_bgcolor)
 baseframe = tk.Frame(root, bg = frame_bgcolor)
 topframe.pack(fill=tk.X)
