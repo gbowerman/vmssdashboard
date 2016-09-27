@@ -19,7 +19,7 @@ btnwidth = 14
 entrywidth = 15
 if os.name == 'mac':
     geometry1 = '740x328'
-    geometry2 = '740x970'
+    geometry2 = '740x980'
 else:
     geometry1 = '540x128'
     geometry2 = '540x770'
