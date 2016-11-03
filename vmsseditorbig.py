@@ -17,15 +17,20 @@ import vmss
 # size and color defaults
 btnwidth = 14
 entrywidth = 15
-if os.name == 'mac':
+if os.name == 'posix':
     geometry1 = '740x328'
     geometry2 = '740x980'
+    list_width = 14
+    status_width = 98
+    canvas_width = 690
 else:
     geometry1 = '540x128'
     geometry2 = '540x770'
+    list_width = 14
+    status_width = 67
+    canvas_width = 530
 frame_bgcolor = '#B0E0E6'
 canvas_height = 520
-canvas_width = 530
 canvas_bgcolor = '#F0FFFF'
 btncolor = '#F8F8FF'
 
@@ -298,7 +303,7 @@ root.wm_iconbitmap('vmss.ico')
 topframe = tk.Frame(root, bg = frame_bgcolor)
 middleframe = tk.Frame(root, bg = frame_bgcolor)
 selectedfd = tk.StringVar()
-vmcanvas = tk.Canvas(middleframe, height=canvas_height, width=canvas_width, bg = canvas_bgcolor)
+vmcanvas = tk.Canvas(middleframe, height=canvas_height, width=canvas_width, bg=canvas_bgcolor)
 vmframe = tk.Frame(root, bg = frame_bgcolor)
 baseframe = tk.Frame(root, bg = frame_bgcolor)
 topframe.pack(fill=tk.X)
@@ -338,11 +343,11 @@ vmpoweroffbtn = tk.Button(vmframe, text='Power off', command=poweroffvm, width=b
 vmframe.pack(fill=tk.X)
 baseframe.pack(fill=tk.X)
 
-skutext = tk.Entry(topframe, width=entrywidth, bg = canvas_bgcolor)
-versiontext = tk.Entry(topframe, width=entrywidth, bg = canvas_bgcolor)
-capacitytext = tk.Entry(topframe, width=entrywidth, bg = canvas_bgcolor)
-vmsizetext = tk.Entry(topframe, width=entrywidth, bg = canvas_bgcolor)
-statustext = tk.Text(baseframe, height=1, width=67, bg = canvas_bgcolor)
+skutext = tk.Entry(topframe, width=entrywidth, bg=canvas_bgcolor)
+versiontext = tk.Entry(topframe, width=entrywidth, bg=canvas_bgcolor)
+capacitytext = tk.Entry(topframe, width=entrywidth, bg=canvas_bgcolor)
+vmsizetext = tk.Entry(topframe, width=entrywidth, bg=canvas_bgcolor)
+statustext = tk.Text(baseframe, height=1, width=status_width, bg=canvas_bgcolor)
 
 
 def statusmsg(statusstring):
