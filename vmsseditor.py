@@ -16,7 +16,7 @@ import vmss
 # size and color defaults
 btnwidth = 14
 entrywidth = 15
-if os.name == 'posix':
+if os.name == 'posix':  # Mac OS
     geometry1 = '700x140'
     geometry100 = '700x450'
     geometry300 = '700x780'
