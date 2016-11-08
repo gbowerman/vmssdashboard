@@ -17,17 +17,25 @@ import vmss
 btnwidth = 14
 entrywidth = 15
 if os.name == 'posix':
-    geometry1 = '700x140'
-    geometry2 = '700x450'
+    geometry1 = '700x240'
+    geometry100 = '700x650'
+    geometry300 = '700x980'
+    geometry1000 = '700x1960'
     list_width = 14
     status_width = 98
     canvas_width = 690
 else:
     geometry1 = '540x128'
-    geometry2 = '540x440'
+    geometry100 = '540x440'
+    geometry300 = '540x770'
+    geometry1000 = '540x1750'
     list_width = 8
     status_width = 67
     canvas_width = 530
+
+canvas_height100 = 195
+canvas_height300 = 520
+canvas_height1000 = 1500
 frame_bgcolor = '#B0E0E6'
 canvas_bgcolor = '#F0FFFF'
 btncolor = '#F8F8FF'
@@ -124,28 +132,40 @@ def assign_color_to_power_state(powerstate):
         return 'blue'
 
 # draw a grid to delineate fault domains and update domains on the VMSS heatmap
-def draw_grid():
+def draw_grid(row_height, ystart, xend):
     vmcanvas.delete("all")
     # horizontal lines for UDs
-    for y in range(4):
-        ydelta = y * 35
+    for y in range(5):
+        ydelta = y * row_height
         vmcanvas.create_text(15, ydelta + 30, text='UD ' + str(y))
-        vmcanvas.create_line(35, 50 + ydelta, 520, 50 + ydelta)
-    vmcanvas.create_text(15, 170, text='UD 4')
+        if (y < 4):
+            vmcanvas.create_line(35, ystart + ydelta, 520, ystart + ydelta)
 
     # vertical lines for FDs
-    for x in range(4):
+    for x in range(5):
         xdelta = x * 100
         vmcanvas.create_text(45 + xdelta, 10, text='FD ' + str(x))
-        vmcanvas.create_line(132 + xdelta, 20, 132 + xdelta, 180, dash=(4, 2))
-    vmcanvas.create_text(445, 10, text='FD 4')
+        if (x < 4):
+            vmcanvas.create_line(132 + xdelta, 20, 132 + xdelta, xend, dash=(4, 2))
 
 # draw a heat map for the VMSS VMs - uses the set_domain_lists() function from the vmss class
 def draw_vms(vmssinstances):
     xval = 35
     yval = 20
     diameter = 15
-    draw_grid()
+    if current_vmss.capacity < 101:
+        row_height = 35
+        ystart = 50
+        xend = 180
+    elif current_vmss.capacity < 301:
+        row_height = 100
+        ystart = 110
+        xend = 500
+    else:
+        row_height = 300
+        ystart = 230
+        xend = 1200
+    draw_grid(row_height, ystart, xend)
     # current_vmss.clear_domain_lists()
     current_vmss.set_domain_lists()
     matrix = [[0 for x in range(5)] for y in range(5)]
@@ -155,8 +175,13 @@ def draw_vms(vmssinstances):
         ud = vm[2]
         powerstate = vm[3]
         statuscolor = assign_color_to_power_state(powerstate)
-        xdelta = (fd * 100) + (matrix[ud][fd] * 20)
-        ydelta = ud * 35
+
+        # the purpose of this is to build up rows of 5 in each UD/FD
+        # to do: make geometry wider for larger scale sets, with fewer, longer rows
+        row = matrix[ud][fd] // 5
+        xdelta = fd * 100 + (matrix[ud][fd] - row * 5) * 20
+        ydelta = ud * row_height + row * 30
+       
         # colored circle represents machine power state
         vmcanvas.create_oval(xval + xdelta, yval + ydelta, xval + xdelta + diameter, yval + ydelta + diameter, fill=statuscolor)
         # print VM ID under each circle
@@ -294,7 +319,7 @@ root.wm_iconbitmap('vmss.ico')
 topframe = tk.Frame(root, bg = frame_bgcolor)
 middleframe = tk.Frame(root, bg = frame_bgcolor)
 selectedfd = tk.StringVar()
-vmcanvas = tk.Canvas(middleframe, height=195, width=canvas_width, bg = canvas_bgcolor)
+vmcanvas = tk.Canvas(middleframe, height=canvas_height100, width=canvas_width, bg = canvas_bgcolor)
 vmframe = tk.Frame(root, bg = frame_bgcolor)
 baseframe = tk.Frame(root, bg = frame_bgcolor)
 topframe.pack(fill=tk.X)
@@ -453,7 +478,17 @@ def deallocvmss():
 
 def vmssdetails():
     # VMSS VM canvas - middle frame
+    if current_vmss.capacity < 101:
+        geometry2 = geometry100
+        canvas_height = canvas_height100
+    elif current_vmss.capacity < 301:
+        geometry2 = geometry300
+        canvas_height = canvas_height300
+    else:
+        geometry2 = geometry1000
+        canvas_height = canvas_height1000
     root.geometry(geometry2)
+    vmcanvas.config(height=canvas_height)
     vmcanvas.pack()
     current_vmss.init_vm_instance_view()
     draw_vms(current_vmss.vm_instance_view)
