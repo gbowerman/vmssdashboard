@@ -17,10 +17,10 @@ import vmss
 btnwidth = 14
 entrywidth = 15
 if os.name == 'posix':
-    geometry1 = '700x240'
-    geometry100 = '700x650'
-    geometry300 = '700x980'
-    geometry1000 = '700x1960'
+    geometry1 = '700x140'
+    geometry100 = '700x450'
+    geometry300 = '700x780'
+    geometry1000 = '700x1760'
     list_width = 14
     status_width = 98
     canvas_width = 690
@@ -176,7 +176,7 @@ def draw_vms(vmssinstances):
         powerstate = vm[3]
         statuscolor = assign_color_to_power_state(powerstate)
 
-        # the purpose of this is to build up rows of 5 in each UD/FD
+        # the purpose of this is to build up multiple rows of 5 in each UD/FD
         # to do: make geometry wider for larger scale sets, with fewer, longer rows
         row = matrix[ud][fd] // 5
         xdelta = fd * 100 + (matrix[ud][fd] - row * 5) * 20
