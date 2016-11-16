@@ -163,7 +163,7 @@ def draw_vms(vmssinstances):
         xend = 500
     else:
         row_height = 300
-        ystart = 230
+        ystart = 300
         xend = 1200
     draw_grid(row_height, ystart, xend)
     # current_vmss.clear_domain_lists()
