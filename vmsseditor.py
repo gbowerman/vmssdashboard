@@ -239,7 +239,7 @@ def rollingupgrade():
     vmbyfd_list = []
     for fdval in range(5):
         vmbyfd_list += current_vmss.fd_dict[fdval]
-    num_vms_to_upgrade = len(vmbyfd_list) # should be the same of vmss capacity if starting in consistent state
+    num_vms_to_upgrade = len(vmbyfd_list) # should = vmss capacity if starting in consistent state
 
     # launch rolling update thread
     rolling_upgrade_thread = threading.Thread(target=rolling_upgrade_engine, args=(batchsize, pausetime, vmbyfd_list,))
