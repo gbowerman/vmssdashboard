@@ -138,31 +138,31 @@ def draw_grid(originx, originy, row_height, ystart, xend, groupId):
         ydelta = y * row_height
         vmcanvas.create_text(originx + 15, originy + ydelta + 50, text='UD ' + str(y))
         if (y < 4):
-            vmcanvas.create_line(originx + 35, originy + ystart + ydelta, originx + 520, \
+            vmcanvas.create_line(originx + 35, originy + ystart + ydelta, originx + 415, \
                 originy + ystart + ydelta)
 
     # vertical lines for FDs
     for x in range(5):
-        xdelta = x * 100
+        xdelta = x * 80
         vmcanvas.create_text(originx + 45 + xdelta, originy + 30, text='FD ' + str(x))
         if (x < 4):
-            vmcanvas.create_line(originx + 132 + xdelta, originy + 50, originx + 132 + xdelta, \
-                originy + xend + 30, dash=(4, 2))
+            vmcanvas.create_line(originx + 110 + xdelta, originy + 40, originx + 110 + xdelta, \
+                originy + xend, dash=(4, 2))
 
 # draw a heat map for the VMSS VMs - uses the set_domain_lists() function from the vmss class
 def draw_vms():
     xval = 35
     yval = 40
-    diameter = 15
+    diameter = 10
 
-    row_height = 35
-    ystart = 70
-    xend = 180
+    row_height = 27
+    ystart = 60
+    xend = 170
     originx = 0
     originy = 0
     current_vmss.set_domain_lists()
     vmcanvas.delete("all")
-    pgcount = 1
+    pgcount = 0
     for placementGroup in current_vmss.pg_list:
         draw_grid(originx, originy, row_height, ystart, xend, placementGroup['guid'])
         matrix = [[0 for x in range(5)] for y in range(5)]
@@ -175,20 +175,20 @@ def draw_vms():
 
             # the purpose of this is to build up multiple rows of 5 in each UD/FD
             row = matrix[ud][fd] // 5
-            xdelta = fd * 100 + (matrix[ud][fd] - row * 5) * 20
+            xdelta = fd * 80 + (matrix[ud][fd] - row * 5) * 15
             ydelta = ud * row_height + row * 30
         
             # colored circle represents machine power state
             vmcanvas.create_oval(originx + xval + xdelta, originy + yval + ydelta, \
                 originx + xval + xdelta + diameter, originy + yval + ydelta + diameter, fill=statuscolor)
             # print VM ID under each circle
-            vmcanvas.create_text(originx + xval + xdelta + 7, originy + yval + ydelta + 22, \
+            vmcanvas.create_text(originx + xval + xdelta + 7, originy + yval + ydelta + 15, \
                 font=("Purisa", 6),text=instance_id)
             matrix[ud][fd] += 1
-        originx += 530
+        originx += 425
         pgcount += 1
         if pgcount % 3 == 0:
-            originy += 210
+            originy += 170
             originx = 0
 
 

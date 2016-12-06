@@ -163,7 +163,7 @@ class vmss():
                 key=lambda k: k['properties']['instanceView']['groupId'])
             last_group_id = self.vm_instance_view['value'][0]['properties']['instanceView']['groupId']
         else: 
-            last_group_id = "0"
+            last_group_id = "undefined"
         # now create a list of group id + FD/UD list objects
         # each time group id changes append a new value to the list
         fd_dict = {f: [] for f in range(5)}
