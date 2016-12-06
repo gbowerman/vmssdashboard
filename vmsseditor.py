@@ -23,18 +23,18 @@ if os.name == 'posix':  # Mac OS
     list_width = 14
     status_width = 98
     canvas_width100 = 690
-    canvas_width1000 = 1690
+    canvas_width1000 = 1490
 else:
     geometry1 = '540x128'
     geometry100 = '540x440'
-    geometry1000 = '1500x840'
+    geometry1000 = '1300x840'
     list_width = 8
     status_width = 67
-    canvas_width100 = 530
-    canvas_width1000 = 1530
+    canvas_width100 = 520
+    canvas_width1000 = 1230
 
 canvas_height100 = 195
-canvas_height1000 = 600
+canvas_height1000 = 580
 frame_bgcolor = '#B0E0E6'
 canvas_bgcolor = '#F0FFFF'
 btncolor = '#F8F8FF'
@@ -162,6 +162,11 @@ def draw_vms():
     originy = 0
     current_vmss.set_domain_lists()
     vmcanvas.delete("all")
+    if current_vmss.largeScaleEnabled == True:
+        vbar.pack(side=tk.RIGHT,fill=tk.Y)
+        vbar.config(command=vmcanvas.yview)
+        vmcanvas.config(yscrollcommand=vbar.set)
+        vmcanvas.pack(side=tk.LEFT,expand=True,fill=tk.BOTH)
     pgcount = 0
     for placementGroup in current_vmss.pg_list:
         draw_grid(originx, originy, row_height, ystart, xend, placementGroup['guid'])
@@ -325,7 +330,9 @@ root.wm_iconbitmap('vmss.ico')
 topframe = tk.Frame(root, bg = frame_bgcolor)
 middleframe = tk.Frame(root, bg = frame_bgcolor)
 selectedfd = tk.StringVar()
-vmcanvas = tk.Canvas(middleframe, height=canvas_height100, width=canvas_width100, bg = canvas_bgcolor)
+vmcanvas = tk.Canvas(middleframe, height=canvas_height100, width=canvas_width100, \
+    scrollregion=(0,0,canvas_width1000,canvas_height1000 + 110), bg = canvas_bgcolor)
+vbar=tk.Scrollbar(middleframe,orient=tk.VERTICAL)
 vmframe = tk.Frame(root, bg = frame_bgcolor)
 baseframe = tk.Frame(root, bg = frame_bgcolor)
 topframe.pack(fill=tk.X)
