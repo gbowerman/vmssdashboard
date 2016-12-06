@@ -188,7 +188,7 @@ def draw_vms():
                 originx + xval + xdelta + diameter, originy + yval + ydelta + diameter, fill=statuscolor)
             # print VM ID under each circle
             vmcanvas.create_text(originx + xval + xdelta + 7, originy + yval + ydelta + 15, \
-                font=("Purisa", 6),text=instance_id)
+                font=("Purisa", 4),text=instance_id)
             matrix[ud][fd] += 1
         originx += 425
         pgcount += 1
