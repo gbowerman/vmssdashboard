@@ -19,23 +19,22 @@ entrywidth = 15
 if os.name == 'posix':  # Mac OS
     geometry1 = '700x140'
     geometry100 = '700x450'
-    geometry300 = '700x780'
-    geometry1000 = '700x1760'
+    geometry1000 = '1700x850'
     list_width = 14
     status_width = 98
-    canvas_width = 690
+    canvas_width100 = 690
+    canvas_width1000 = 1690
 else:
     geometry1 = '540x128'
     geometry100 = '540x440'
-    geometry300 = '540x770'
-    geometry1000 = '540x1750'
+    geometry1000 = '1500x840'
     list_width = 8
     status_width = 67
-    canvas_width = 530
+    canvas_width100 = 530
+    canvas_width1000 = 1530
 
 canvas_height100 = 195
-canvas_height300 = 520
-canvas_height1000 = 1500
+canvas_height1000 = 600
 frame_bgcolor = '#B0E0E6'
 canvas_bgcolor = '#F0FFFF'
 btncolor = '#F8F8FF'
@@ -132,69 +131,74 @@ def assign_color_to_power_state(powerstate):
         return 'blue'
 
 # draw a grid to delineate fault domains and update domains on the VMSS heatmap
-def draw_grid(row_height, ystart, xend):
-    vmcanvas.delete("all")
+def draw_grid(originx, originy, row_height, ystart, xend, groupId):
+    vmcanvas.create_text(originx + 180, originy + 10, text='Placement group: ' + groupId)
     # horizontal lines for UDs
     for y in range(5):
         ydelta = y * row_height
-        vmcanvas.create_text(15, ydelta + 30, text='UD ' + str(y))
+        vmcanvas.create_text(originx + 15, originy + ydelta + 50, text='UD ' + str(y))
         if (y < 4):
-            vmcanvas.create_line(35, ystart + ydelta, 520, ystart + ydelta)
+            vmcanvas.create_line(originx + 35, originy + ystart + ydelta, originx + 520, \
+                originy + ystart + ydelta)
 
     # vertical lines for FDs
     for x in range(5):
         xdelta = x * 100
-        vmcanvas.create_text(45 + xdelta, 10, text='FD ' + str(x))
+        vmcanvas.create_text(originx + 45 + xdelta, originy + 30, text='FD ' + str(x))
         if (x < 4):
-            vmcanvas.create_line(132 + xdelta, 20, 132 + xdelta, xend, dash=(4, 2))
+            vmcanvas.create_line(originx + 132 + xdelta, originy + 50, originx + 132 + xdelta, \
+                originy + xend + 30, dash=(4, 2))
 
 # draw a heat map for the VMSS VMs - uses the set_domain_lists() function from the vmss class
-def draw_vms(vmssinstances):
+def draw_vms():
     xval = 35
-    yval = 20
+    yval = 40
     diameter = 15
-    if current_vmss.capacity < 101:
-        row_height = 35
-        ystart = 50
-        xend = 180
-    elif current_vmss.capacity < 301:
-        row_height = 100
-        ystart = 110
-        xend = 500
-    else:
-        row_height = 300
-        ystart = 300
-        xend = 1200
-    draw_grid(row_height, ystart, xend)
-    # current_vmss.clear_domain_lists()
-    current_vmss.set_domain_lists()
-    matrix = [[0 for x in range(5)] for y in range(5)]
-    for vm in current_vmss.vm_list:
-        instance_id = vm[0]
-        fd = vm[1]
-        ud = vm[2]
-        powerstate = vm[3]
-        statuscolor = assign_color_to_power_state(powerstate)
 
-        # the purpose of this is to build up multiple rows of 5 in each UD/FD
-        # to do: make geometry wider for larger scale sets, with fewer, longer rows
-        row = matrix[ud][fd] // 5
-        xdelta = fd * 100 + (matrix[ud][fd] - row * 5) * 20
-        ydelta = ud * row_height + row * 30
-       
-        # colored circle represents machine power state
-        vmcanvas.create_oval(xval + xdelta, yval + ydelta, xval + xdelta + diameter, yval + ydelta + diameter, fill=statuscolor)
-        # print VM ID under each circle
-        vmcanvas.create_text(xval + xdelta + 7, yval + ydelta + 22, text=instance_id)
-        matrix[ud][fd] += 1
+    row_height = 35
+    ystart = 70
+    xend = 180
+    originx = 0
+    originy = 0
+    current_vmss.set_domain_lists()
+    vmcanvas.delete("all")
+    pgcount = 1
+    for placementGroup in current_vmss.pg_list:
+        draw_grid(originx, originy, row_height, ystart, xend, placementGroup['guid'])
+        matrix = [[0 for x in range(5)] for y in range(5)]
+        for vm in placementGroup['vm_list']:
+            instance_id = vm[0]
+            fd = vm[1]
+            ud = vm[2]
+            powerstate = vm[3]
+            statuscolor = assign_color_to_power_state(powerstate)
+
+            # the purpose of this is to build up multiple rows of 5 in each UD/FD
+            row = matrix[ud][fd] // 5
+            xdelta = fd * 100 + (matrix[ud][fd] - row * 5) * 20
+            ydelta = ud * row_height + row * 30
+        
+            # colored circle represents machine power state
+            vmcanvas.create_oval(originx + xval + xdelta, originy + yval + ydelta, \
+                originx + xval + xdelta + diameter, originy + yval + ydelta + diameter, fill=statuscolor)
+            # print VM ID under each circle
+            vmcanvas.create_text(originx + xval + xdelta + 7, originy + yval + ydelta + 22, \
+                font=("Purisa", 6),text=instance_id)
+            matrix[ud][fd] += 1
+        originx += 530
+        pgcount += 1
+        if pgcount % 3 == 0:
+            originy += 210
+            originx = 0
 
 
 def getfds():
     fd = int(selectedfd.get())
     fdinstancelist = []
-    # print(json.dumps(current_vmss.fd_dict))
-    for entry in current_vmss.fd_dict[fd]:
-        fdinstancelist.append(entry[0])  # entry[0] is the instance id
+    # loop through placement groups
+    for pg in current_vmss.pg_list:
+        for entry in pg['fd_dict'][fd]:
+            fdinstancelist.append(entry[0])  # entry[0] is the instance id
     # build list of UDs
     return fdinstancelist
 
@@ -238,11 +242,13 @@ def rollingupgrade():
     # get list of VMs ordered by FD - get this by concatenating the vmss fd_dict into a single list
     vmbyfd_list = []
     for fdval in range(5):
-        vmbyfd_list += current_vmss.fd_dict[fdval]
+        for pg in current_vmss.pg_list:
+            vmbyfd_list += pg['fd_dict'][fdval]
     num_vms_to_upgrade = len(vmbyfd_list) # should = vmss capacity if starting in consistent state
 
     # launch rolling update thread
-    rolling_upgrade_thread = threading.Thread(target=rolling_upgrade_engine, args=(batchsize, pausetime, vmbyfd_list,))
+    rolling_upgrade_thread = threading.Thread(target=rolling_upgrade_engine, \
+        args=(batchsize, pausetime, vmbyfd_list,))
     rolling_upgrade_thread.daemon = True
     rolling_upgrade_thread.start()
 
@@ -319,7 +325,7 @@ root.wm_iconbitmap('vmss.ico')
 topframe = tk.Frame(root, bg = frame_bgcolor)
 middleframe = tk.Frame(root, bg = frame_bgcolor)
 selectedfd = tk.StringVar()
-vmcanvas = tk.Canvas(middleframe, height=canvas_height100, width=canvas_width, bg = canvas_bgcolor)
+vmcanvas = tk.Canvas(middleframe, height=canvas_height100, width=canvas_width100, bg = canvas_bgcolor)
 vmframe = tk.Frame(root, bg = frame_bgcolor)
 baseframe = tk.Frame(root, bg = frame_bgcolor)
 topframe.pack(fill=tk.X)
@@ -478,20 +484,19 @@ def deallocvmss():
 
 def vmssdetails():
     # VMSS VM canvas - middle frame
-    if current_vmss.capacity < 101:
+    if current_vmss.largeScaleEnabled == False:
         geometry2 = geometry100
         canvas_height = canvas_height100
-    elif current_vmss.capacity < 301:
-        geometry2 = geometry300
-        canvas_height = canvas_height300
+        canvas_width = canvas_width100
     else:
         geometry2 = geometry1000
         canvas_height = canvas_height1000
+        canvas_width = canvas_width1000
     root.geometry(geometry2)
-    vmcanvas.config(height=canvas_height)
+    vmcanvas.config(height=canvas_height, width=canvas_width)
     vmcanvas.pack()
     current_vmss.init_vm_instance_view()
-    draw_vms(current_vmss.vm_instance_view)
+    draw_vms()
 
     # draw rollingframe components
     batchsizelabel.grid(row=0, column=1, sticky=tk.W)
