@@ -23,7 +23,7 @@ VMSS Editor is a Python/Tkinter script to manage VM Scale Sets. You can use it t
 
 ### Installation
   1. Install Python 3.x.
-  2. Install the azurerm REST wrappers for Microsoft Azure: pip install azurerm
+  2. Install the latest azurerm REST wrappers for Microsoft Azure: "pip install azurerm". If the azurerm Python library is already installed, do an update, as only the latest version of VMSS Editor is tested with the latest version of azurerm.
   3. Clone or copy this repo. Specifically you need vmsseditor.py, subscription.py, vmss.py, vm.ico and vmssconfig.json.
   4. Register an Azure application, create a service principal and get your tenant id. See "Using vmssdashboard and vmsseditor" below.
   5. Put in values for your application and subscription in vmssconfig.json.
