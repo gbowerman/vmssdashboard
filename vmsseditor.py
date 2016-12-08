@@ -19,11 +19,11 @@ entrywidth = 15
 if os.name == 'posix':  # Mac OS
     geometry1 = '700x140'
     geometry100 = '700x450'
-    geometry1000 = '1700x850'
+    geometry1000 = '1500x850'
     list_width = 14
     status_width = 98
     canvas_width100 = 690
-    canvas_width1000 = 1490
+    canvas_width1000 = 1300
 else:
     geometry1 = '540x128'
     geometry100 = '540x440'
