@@ -167,6 +167,9 @@ def draw_vms():
         vbar.config(command=vmcanvas.yview)
         vmcanvas.config(yscrollcommand=vbar.set)
         vmcanvas.pack(side=tk.LEFT,expand=True,fill=tk.BOTH)
+        fontsize = 4
+    else:
+        fontsize = 5
     pgcount = 0
     for placementGroup in current_vmss.pg_list:
         draw_grid(originx, originy, row_height, ystart, xend, placementGroup['guid'])
@@ -188,7 +191,7 @@ def draw_vms():
                 originx + xval + xdelta + diameter, originy + yval + ydelta + diameter, fill=statuscolor)
             # print VM ID under each circle
             vmcanvas.create_text(originx + xval + xdelta + 7, originy + yval + ydelta + 15, \
-                font=("Purisa", 4),text=instance_id)
+                font=("Purisa", fontsize),text=instance_id)
             matrix[ud][fd] += 1
         originx += 425
         pgcount += 1
@@ -372,10 +375,10 @@ vmpoweroffbtn = tk.Button(vmframe, text='Power off', command=poweroffvm, width=b
 vmframe.pack(fill=tk.X)
 baseframe.pack(fill=tk.X)
 
-skutext = tk.Entry(topframe, width=entrywidth, bg=canvas_bgcolor)
-versiontext = tk.Entry(topframe, width=entrywidth, bg=canvas_bgcolor)
 capacitytext = tk.Entry(topframe, width=entrywidth, bg=canvas_bgcolor)
 vmsizetext = tk.Entry(topframe, width=entrywidth, bg=canvas_bgcolor)
+skutext = tk.Entry(topframe, width=entrywidth, bg=canvas_bgcolor)
+versiontext = tk.Entry(topframe, width=entrywidth, bg=canvas_bgcolor)
 statustext = tk.Text(baseframe, height=1, width=status_width, bg=canvas_bgcolor)
 
 
