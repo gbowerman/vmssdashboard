@@ -62,6 +62,12 @@ def subidkeepalive():
 # thread to refresh details until provisioning is complete
 def refresh_loop():
     global refresh_thread_running
+    # refresh large scale sets slower to avoid API throttling
+    if current_vmss.largeScaleSet == True:
+        sleep_time = 30
+    else:
+        sleep_time = 10
+        
     while True:
         while (refresh_thread_running == True):
             current_vmss.refresh_model()
@@ -440,7 +446,7 @@ def displayvmss(vmssname):
     offbtn.grid(row=3, column=2, sticky=tk.W)
     deallocbtn = tk.Button(topframe, text="Stop Dealloc", command=deallocvmss, width=btnwidth, bg = btncolor)
     deallocbtn.grid(row=3, column=3, sticky=tk.W)
-    detailsbtn = tk.Button(topframe, text="Show Details", command=vmssdetails, width=btnwidth, bg = btncolor)
+    detailsbtn = tk.Button(topframe, text="Show Heatmap", command=vmssdetails, width=btnwidth, bg = btncolor)
     detailsbtn.grid(row=3, column=4, sticky=tk.W)
 
     # status line
