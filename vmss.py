@@ -17,10 +17,10 @@ class vmss():
         self.nameprefix = vmssmodel['properties']['virtualMachineProfile']['osProfile']['computerNamePrefix']
         self.overprovision = vmssmodel['properties']['overprovision']
         # see if it's a template spanning scale set'
-        if 'largeScaleEnabled' in vmssmodel['properties']:
-            self.largeScaleEnabled = vmssmodel['properties']['largeScaleEnabled']
+        if 'singlePlacementGroup' in vmssmodel['properties']:
+            self.singlePlacementGroup = vmssmodel['properties']['singlePlacementGroup']
         else: 
-            self.largeScaleEnabled = False
+            self.singlePlacementGroup = True
         self.tier = vmssmodel['sku']['tier']
         self.upgradepolicy = vmssmodel['properties']['upgradePolicy']['mode']
         self.vmsize = vmssmodel['sku']['name']
@@ -158,7 +158,7 @@ class vmss():
     def set_domain_lists(self):
         # sort the list of VM instance views by group id
         self.pg_list = []
-        if self.largeScaleEnabled == True:
+        if self.singlePlacementGroup == False:
             self.vm_instance_view['value'] = sorted(self.vm_instance_view['value'], \
                 key=lambda k: k['properties']['instanceView']['groupId'])
             last_group_id = self.vm_instance_view['value'][0]['properties']['instanceView']['groupId']
@@ -173,7 +173,7 @@ class vmss():
             try:
                 # when group Id changes, load fd/ud/vm dictionaries into the placement group list
                 # may need to change this to copy by value
-                if self.largeScaleEnabled == True:
+                if self.singlePlacementGroup == False:
                     if instance['properties']['instanceView']['groupId'] != last_group_id:
                         self.pg_list.append({'guid': last_group_id, 'fd_dict': fd_dict, 'ud_dict': ud_dict, 'vm_list': vm_list})
                         fd_dict = {f: [] for f in range(5)}

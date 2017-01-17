@@ -63,7 +63,7 @@ def subidkeepalive():
 def refresh_loop():
     global refresh_thread_running
     # refresh large scale sets slower to avoid API throttling
-    if current_vmss.largeScaleSet == True:
+    if current_vmss.singlePlacementGroup == False:
         sleep_time = 30
     else:
         sleep_time = 10
@@ -168,7 +168,7 @@ def draw_vms():
     originy = 0
     current_vmss.set_domain_lists()
     vmcanvas.delete("all")
-    if current_vmss.largeScaleEnabled == True:
+    if current_vmss.singlePlacementGroup == False:
         vbar.pack(side=tk.RIGHT,fill=tk.Y)
         vbar.config(command=vmcanvas.yview)
         vmcanvas.config(yscrollcommand=vbar.set)
@@ -500,7 +500,7 @@ def deallocvmss():
 
 def vmssdetails():
     # VMSS VM canvas - middle frame
-    if current_vmss.largeScaleEnabled == False:
+    if current_vmss.singlePlacementGroup == True:
         geometry2 = geometry100
         canvas_height = canvas_height100
         canvas_width = canvas_width100
