@@ -17,10 +17,9 @@ class vmss():
         self.nameprefix = vmssmodel['properties']['virtualMachineProfile']['osProfile']['computerNamePrefix']
         self.overprovision = vmssmodel['properties']['overprovision']
         # see if it's a template spanning scale set'
+        self.singlePlacementGroup = True
         if 'singlePlacementGroup' in vmssmodel['properties']:
             self.singlePlacementGroup = vmssmodel['properties']['singlePlacementGroup']
-        else: 
-            self.singlePlacementGroup = True
         self.tier = vmssmodel['sku']['tier']
         self.upgradepolicy = vmssmodel['properties']['upgradePolicy']['mode']
         self.vmsize = vmssmodel['sku']['name']
@@ -119,7 +118,8 @@ class vmss():
         # get an instance view list in order to build a heatmap
         self.vm_instance_view = \
             azurerm.list_vmss_vm_instance_view(self.access_token, self.sub_id, self.rgname, self.name)
-
+        # print('Counted instances: ' + str(len(self.vm_instance_view['value'])))
+        # print(json.dumps(self.vm_instance_view, sort_keys=False, indent=2, separators=(',', ': ')))
     # operations on individual VMs or groups of VMs in a scale set
     def reimagevm(self, vmstring):
         result = azurerm.reimage_vmss_vms(self.access_token, self.sub_id, self.rgname, self.name, vmstring)
@@ -160,8 +160,8 @@ class vmss():
         self.pg_list = []
         if self.singlePlacementGroup == False:
             self.vm_instance_view['value'] = sorted(self.vm_instance_view['value'], \
-                key=lambda k: k['properties']['instanceView']['groupId'])
-            last_group_id = self.vm_instance_view['value'][0]['properties']['instanceView']['groupId']
+                key=lambda k: k['properties']['instanceView']['placementGroupId'])
+            last_group_id = self.vm_instance_view['value'][0]['properties']['instanceView']['placementGroupId']
         else: 
             last_group_id = "single group"
         # now create a list of group id + FD/UD list objects
@@ -173,13 +173,14 @@ class vmss():
             try:
                 # when group Id changes, load fd/ud/vm dictionaries into the placement group list
                 # may need to change this to copy by value
+                # debug: print(json.dumps(instance))
                 if self.singlePlacementGroup == False:
-                    if instance['properties']['instanceView']['groupId'] != last_group_id:
+                    if instance['properties']['instanceView']['placementGroupId'] != last_group_id:
                         self.pg_list.append({'guid': last_group_id, 'fd_dict': fd_dict, 'ud_dict': ud_dict, 'vm_list': vm_list})
                         fd_dict = {f: [] for f in range(5)}
                         ud_dict = {u: [] for u in range(5)}
                         vm_list = []
-                        last_group_id = instance['properties']['instanceView']['groupId']
+                        last_group_id = instance['properties']['instanceView']['placementGroupId']
                 instanceId = instance['instanceId']
                 ud = instance['properties']['instanceView']['platformUpdateDomain']
                 fd = instance['properties']['instanceView']['platformFaultDomain']
