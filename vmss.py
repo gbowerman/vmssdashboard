@@ -120,6 +120,23 @@ class vmss():
             azurerm.list_vmss_vm_instance_view(self.access_token, self.sub_id, self.rgname, self.name)
         # print('Counted instances: ' + str(len(self.vm_instance_view['value'])))
         # print(json.dumps(self.vm_instance_view, sort_keys=False, indent=2, separators=(',', ': ')))
+
+
+    # grow the VMSS instance view by one page (calls paginated list instance view fn one time)
+    def grow_vm_instance_view(self, link=None):
+        # get an instance view list in order to build a heatmap
+        if link == None:
+            self.vm_instance_view = \
+                azurerm.list_vmss_vm_instance_view_pg(self.access_token, self.sub_id, self.rgname, self.name)
+        else:
+            instance_page = azurerm.list_vmss_vm_instance_view_pg(self.access_token, self.sub_id, self.rgname, self.name, link)
+            if 'nextLink' in instance_page:
+                self.vm_instance_view['nextLink'] = instance_page['nextLink']
+            else:
+                del(self.vm_instance_view['nextLink'])     
+            self.vm_instance_view['value'].extend(instance_page['value'])
+
+
     # operations on individual VMs or groups of VMs in a scale set
     def reimagevm(self, vmstring):
         result = azurerm.reimage_vmss_vms(self.access_token, self.sub_id, self.rgname, self.name, vmstring)

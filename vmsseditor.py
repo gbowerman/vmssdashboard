@@ -204,7 +204,7 @@ def draw_vms():
         if pgcount % 3 == 0:
             originy += 170
             originx = 0
-
+    vmcanvas.update_idletasks()
 
 def getfds():
     fd = int(selectedfd.get())
@@ -511,8 +511,15 @@ def vmssdetails():
     root.geometry(geometry2)
     vmcanvas.config(height=canvas_height, width=canvas_width)
     vmcanvas.pack()
-    current_vmss.init_vm_instance_view()
-    draw_vms()
+    looping = True
+    nextLink = None
+    while (looping is True):
+        current_vmss.grow_vm_instance_view(nextLink)
+        draw_vms()
+        if not 'nextLink' in current_vmss.vm_instance_view:
+            looping = False
+        else:
+            nextLink = current_vmss.vm_instance_view['nextLink']
 
     # draw rollingframe components
     batchsizelabel.grid(row=0, column=1, sticky=tk.W)
