@@ -204,7 +204,8 @@ def draw_vms():
         if pgcount % 3 == 0:
             originy += 170
             originx = 0
-    vmcanvas.update_idletasks()
+    vmcanvas.update_idletasks() # refresh the display 
+    time.sleep(0.01) # add a little nap seems to make the display refresh more reliable
 
 def getfds():
     fd = int(selectedfd.get())
