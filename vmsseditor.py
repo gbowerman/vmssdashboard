@@ -63,19 +63,20 @@ def subidkeepalive():
 def refresh_loop():
     global refresh_thread_running
     # refresh large scale sets slower to avoid API throttling
-    if current_vmss.singlePlacementGroup == False:
-        sleep_time = 30
-    else:
-        sleep_time = 10
-        
-    while True:
-        while (refresh_thread_running == True):
-            current_vmss.refresh_model()
-            if current_vmss.status == 'Succeeded' or current_vmss.status == 'Failed':
-                refresh_thread_running = False
+    if current_vmss is not None:
+        if current_vmss.singlePlacementGroup == False:
+            sleep_time = 30
+        else:
+            sleep_time = 10
+            
+        while True:
+            while (refresh_thread_running == True):
+                current_vmss.refresh_model()
+                if current_vmss.status == 'Succeeded' or current_vmss.status == 'Failed':
+                    refresh_thread_running = False
+                time.sleep(10)
+                vmssdetails()
             time.sleep(10)
-            vmssdetails()
-        time.sleep(10)
 
 # rolling upgrade thread
 def rolling_upgrade_engine(batchsize, pausetime, vmbyfd_list):
