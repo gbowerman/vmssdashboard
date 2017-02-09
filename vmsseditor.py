@@ -19,7 +19,7 @@ entrywidth = 15
 if os.name == 'posix':  # Mac OS
     geometry1 = '700x140'
     geometry100 = '700x450'
-    geometry1000 = '1500x850'
+    geometry1000 = '1500x940'
     list_width = 14
     status_width = 98
     canvas_width100 = 690
@@ -27,14 +27,14 @@ if os.name == 'posix':  # Mac OS
 else:
     geometry1 = '540x128'
     geometry100 = '540x440'
-    geometry1000 = '1300x840'
+    geometry1000 = '1300x950'
     list_width = 8
     status_width = 67
     canvas_width100 = 520
     canvas_width1000 = 1230
 
 canvas_height100 = 195
-canvas_height1000 = 580
+canvas_height1000 = 700
 frame_bgcolor = '#B0E0E6'
 canvas_bgcolor = '#F0FFFF'
 btncolor = '#F8F8FF'
