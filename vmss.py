@@ -17,7 +17,7 @@ class vmss():
         self.nameprefix = vmssmodel['properties']['virtualMachineProfile']['osProfile']['computerNamePrefix']
         self.overprovision = vmssmodel['properties']['overprovision']
 
-        # see if it's a template spanning scale set'
+        # see if it's a tenant spanning scale set'
         self.singlePlacementGroup = True
         if 'singlePlacementGroup' in vmssmodel['properties']:
             self.singlePlacementGroup = vmssmodel['properties']['singlePlacementGroup']
