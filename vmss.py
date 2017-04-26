@@ -16,6 +16,7 @@ class vmss():
         self.location = vmssmodel['location']
         self.nameprefix = vmssmodel['properties']['virtualMachineProfile']['osProfile']['computerNamePrefix']
         self.overprovision = vmssmodel['properties']['overprovision']
+
         # see if it's a template spanning scale set'
         self.singlePlacementGroup = True
         if 'singlePlacementGroup' in vmssmodel['properties']:
@@ -24,16 +25,28 @@ class vmss():
         self.upgradepolicy = vmssmodel['properties']['upgradePolicy']['mode']
         self.vmsize = vmssmodel['sku']['name']
 
-        # if it's a platform image, the model will have these
+        # if it's a platform image, or managed disk based custom image, it has an imageReference
         if 'imageReference' in vmssmodel['properties']['virtualMachineProfile']['storageProfile']:
-            self.image_type = 'platform'
-            self.offer = vmssmodel['properties']['virtualMachineProfile']['storageProfile']['imageReference']['offer']
-            self.sku = vmssmodel['properties']['virtualMachineProfile']['storageProfile']['imageReference']['sku']
-            self.version = vmssmodel['properties']['virtualMachineProfile']['storageProfile']['imageReference']['version']
-        # else it's a custom image it will have an image URI 
+            # if it's a managed disk based custom image it has an id
+            if 'id' in vmssmodel['properties']['virtualMachineProfile']['storageProfile']['imageReference']:
+                self.image_type = 'custom'
+                self.offer = 'custom'
+                self.sku = 'custom'
+                img_ref_id = vmssmodel['properties']['virtualMachineProfile']['storageProfile']['imageReference']['id']
+                self.version = img_ref_id.split(".Compute/", 1)[1]
+            else: # platform image
+                self.image_type = 'platform'
+                self.offer = vmssmodel['properties']['virtualMachineProfile']['storageProfile']['imageReference']['offer']
+                self.sku = vmssmodel['properties']['virtualMachineProfile']['storageProfile']['imageReference']['sku']
+                self.version = vmssmodel['properties']['virtualMachineProfile']['storageProfile']['imageReference']['version']
+
+        # else it's an unmanaged disk custom image and has an image URI
         else:
             self.image_type = 'custom'
-            self.offer = vmssmodel['properties']['virtualMachineProfile']['storageProfile']['osDisk']['osType']
+            if 'osType' in vmssmodel['properties']['virtualMachineProfile']['storageProfile']['osDisk']:
+                self.offer = vmssmodel['properties']['virtualMachineProfile']['storageProfile']['osDisk']['osType']
+            else:
+                self.offer = 'custom'
             self.sku = 'custom'
             self.version = vmssmodel['properties']['virtualMachineProfile']['storageProfile']['osDisk']['image']['uri']
 
