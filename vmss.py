@@ -37,6 +37,7 @@ class vmss():
                 self.sku = 'custom'
                 img_ref_id = vmssmodel['properties']['virtualMachineProfile']['storageProfile']['imageReference']['id']
                 self.version = img_ref_id.split(".Compute/", 1)[1]
+                self.image_resource_id = img_ref_id.split(".Compute/", 1)[0]
             else:  # platform image
                 self.image_type = 'platform'
                 self.offer = vmssmodel['properties']['virtualMachineProfile']['storageProfile']['imageReference']['offer']
@@ -88,10 +89,16 @@ class vmss():
         if self.version != newversion:
             changes += 1
             self.version = newversion
-            if self.image_type == 'platform':
+            if self.image_type == 'platform':  # for platform image modify image reference
                 self.model['properties']['virtualMachineProfile']['storageProfile']['imageReference']['version'] = newversion
             else:
-                self.model['properties']['virtualMachineProfile']['storageProfile']['osDisk']['image']['uri'] = newversion
+                # check for managed disk
+                if 'imageReference' in self.model['properties']['virtualMachineProfile']['storageProfile']:
+                    self.model['properties']['virtualMachineProfile']['storageProfile']['imageReference']['id'] = self.image_resource_id + '.Compute/' + newversion
+                else:
+                    # unmanaged custom image - has a URI which points directly to image blob
+                    self.model['properties']['virtualMachineProfile']['storageProfile']['osDisk']['image']['uri'] = newversion
+
         if self.vmsize != newvmsize:
             changes += 1
             # to do - add a check that the new vm size matches the tier
