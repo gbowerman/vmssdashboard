@@ -7,7 +7,7 @@ import json
 import os
 import sys
 import threading
-import time
+from time import sleep, strftime
 import tkinter as tk
 from tkinter import messagebox
 import subscription
@@ -55,7 +55,7 @@ refresh_thread_running = False
 # thread to keep access token alive
 def subidkeepalive():
     while True:
-        time.sleep(2000)
+        sleep(2000)
         sub.auth()
         current_vmss.update_token(sub.access_token)
 
@@ -74,9 +74,9 @@ def refresh_loop():
                 current_vmss.refresh_model()
                 if current_vmss.status == 'Succeeded' or current_vmss.status == 'Failed':
                     refresh_thread_running = False
-                time.sleep(10)
+                sleep(10)
                 vmssdetails()
-            time.sleep(10)
+            sleep(10)
 
 # rolling upgrade thread
 def rolling_upgrade_engine(batchsize, pausetime, vmbyfd_list):
@@ -104,10 +104,10 @@ def rolling_upgrade_engine(batchsize, pausetime, vmbyfd_list):
         # wait for upgrade to complete
         statusmsg('Batch ' + str(batch_count) + ' upgrade in progress')
         while (refresh_thread_running == True):
-            time.sleep(1)
+            sleep(1)
         print('Batch ' + str(batch_count) + ' complete')
         # wait for pausetime
-        time.sleep(pausetime)
+        sleep(pausetime)
     statusmsg('Rolling upgrade complete. Batch count: ' + str(batch_count))
 
 # start timer thread
@@ -206,7 +206,7 @@ def draw_vms():
             originy += 170
             originx = 0
     vmcanvas.update_idletasks() # refresh the display 
-    time.sleep(0.01) # add a little nap seems to make the display refresh more reliable
+    sleep(0.01) # add a little nap seems to make the display refresh more reliable
 
 def getfds():
     fd = int(selectedfd.get())
@@ -391,9 +391,10 @@ statustext = tk.Text(baseframe, height=1, width=status_width, bg=canvas_bgcolor)
 
 
 def statusmsg(statusstring):
+    st_message = strftime("%Y-%m-%d %H:%M:%S ") + str(statusstring)
     if statustext.get(1.0, tk.END):
         statustext.delete(1.0, tk.END)
-    statustext.insert(tk.END, statusstring)
+    statustext.insert(tk.END, st_message)
 
 
 def displayvmss(vmssname):
