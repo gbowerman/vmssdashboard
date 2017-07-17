@@ -46,3 +46,4 @@ Here's a 2 minute video demo of the rolling upgrade feature in action..
 [![rolling upgrade demo](https://img.youtube.com/vi/LuEzErQF-Io/0.jpg)](https://www.youtube.com/watch?v=LuEzErQF-Io)
 
 
+**Check this repo Wiki page on how to use custom images for VM scale sets in Azure.**
