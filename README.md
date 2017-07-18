@@ -1,4 +1,3 @@
-
 # VMSS Dashboard tools
 
 Simple Python tools to demonstrate Azure [Virtual Machine Scale Sets](https://azure.microsoft.com/en-us/services/virtual-machine-scale-sets/) by calling the Azure Compute REST API.
@@ -46,4 +45,4 @@ Here's a 2 minute video demo of the rolling upgrade feature in action..
 [![rolling upgrade demo](https://img.youtube.com/vi/LuEzErQF-Io/0.jpg)](https://www.youtube.com/watch?v=LuEzErQF-Io)
 
 
-**Check this repo Wiki page on how to use custom images for VM scale sets in Azure.**
+**Check [this Wiki](https://github.com/MurthyCloudConfigurations/vmssdashboard/wiki) page on how to use custom images for VM scale sets in Azure.**
