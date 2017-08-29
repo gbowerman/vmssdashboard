@@ -1,6 +1,8 @@
+'''vmss.py - class of basic Azure VM scale set operations'''
 import json
-import azurerm
 from operator import methodcaller
+
+import azurerm
 
 
 class vmss():
@@ -94,9 +96,11 @@ class vmss():
             else:
                 # check for managed disk
                 if 'imageReference' in self.model['properties']['virtualMachineProfile']['storageProfile']:
-                    self.model['properties']['virtualMachineProfile']['storageProfile']['imageReference']['id'] = self.image_resource_id + '.Compute/' + newversion
+                    self.model['properties']['virtualMachineProfile']['storageProfile'][
+                        'imageReference']['id'] = self.image_resource_id + '.Compute/' + newversion
                 else:
-                    # unmanaged custom image - has a URI which points directly to image blob
+                    # unmanaged custom image - has a URI which points directly
+                    # to image blob
                     self.model['properties']['virtualMachineProfile']['storageProfile']['osDisk']['image']['uri'] = newversion
 
         if self.vmsize != newvmsize:
@@ -112,11 +116,11 @@ class vmss():
                                                json.dumps(self.model))
             self.status = updateresult
 
-    # set the VMSS to a new capacity
     def scale(self, capacity):
+        '''set the VMSS to a new capacity'''
         self.model['sku']['capacity'] = capacity
-        scaleoutput = azurerm.scale_vmss(self.access_token, self.sub_id, self.rgname, self.name, self.vmsize,
-                                         self.tier, capacity)
+        scaleoutput = azurerm.scale_vmss(self.access_token, self.sub_id, self.rgname, self.name,
+                                         capacity)
         self.status = scaleoutput
 
     # power on all the VMs in the scale set
