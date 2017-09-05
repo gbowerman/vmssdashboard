@@ -1,15 +1,13 @@
-# VMSS Editor - Azure VM Scale Set management tool
-# vmsseditor.py 
-# - GUI component of scale set editor, tkinter based
-# - uses vmss.py and subscription.py classes for Azure operations
+'''VMSS Editor - Azure VM Scale Set management tool'''
 
 import json
 import os
 import sys
 import threading
-from time import sleep, strftime
 import tkinter as tk
+from time import sleep, strftime
 from tkinter import messagebox
+
 import subscription
 import vmss
 
@@ -42,25 +40,24 @@ btncolor = '#F8F8FF'
 # Load Azure app defaults
 try:
     with open('vmssconfig.json') as configFile:
-        configData = json.load(configFile)
+        config_data = json.load(configFile)
 except FileNotFoundError:
-    print("Error: Expecting vmssconfig.json in current folder")
-    sys.exit()
+    sys.exit('Error: Expecting vmssconfig.json in current folder')
 
-sub = subscription.subscription(configData['tenantId'], configData['appId'], configData['appSecret'],
-                                configData['subscriptionId'])
+sub = subscription.subscription(config_data['tenantId'],  config_data['appId'],
+                                config_data['appSecret'],  config_data['subscriptionId'])
 current_vmss = None
-refresh_thread_running = False
+refresh_thread_running=False
 
-# thread to keep access token alive
 def subidkeepalive():
+    '''thread to keep access token alive'''
     while True:
         sleep(2000)
         sub.auth()
         current_vmss.update_token(sub.access_token)
 
-# thread to refresh details until provisioning is complete
 def refresh_loop():
+    '''thread to refresh details until provisioning is complete'''
     global refresh_thread_running
     # refresh large scale sets slower to avoid API throttling
     if current_vmss is not None:
@@ -68,18 +65,18 @@ def refresh_loop():
             sleep_time = 30
         else:
             sleep_time = 10
-            
+
         while True:
-            while (refresh_thread_running == True):
+            while refresh_thread_running is True:
                 current_vmss.refresh_model()
                 if current_vmss.status == 'Succeeded' or current_vmss.status == 'Failed':
                     refresh_thread_running = False
-                sleep(10)
+                sleep(sleep_time)
                 vmssdetails()
             sleep(10)
 
-# rolling upgrade thread
 def rolling_upgrade_engine(batchsize, pausetime, vmbyfd_list):
+    '''rolling upgrade thread'''
     global refresh_thread_running
     batch_count = 0 # to give user a running status update
     # loop through all VMs
@@ -98,12 +95,12 @@ def rolling_upgrade_engine(batchsize, pausetime, vmbyfd_list):
         # do an upgrade on the batch
         statusmsg('Upgrading batch ' + str(batch_count))
         current_vmss.upgradevm(json.dumps(batch_list))
-        statusmsg('Batch ' + str(batch_count) + ' status: ' + current_vmss.status.text)
+        statusmsg('Batch ' + str(batch_count) + ' status: ' + current_vmss.status)
         refresh_thread_running = True
 
         # wait for upgrade to complete
         statusmsg('Batch ' + str(batch_count) + ' upgrade in progress')
-        while (refresh_thread_running == True):
+        while refresh_thread_running == True:
             sleep(1)
         print('Batch ' + str(batch_count) + ' complete')
         # wait for pausetime
@@ -122,6 +119,7 @@ refresh_thread.start()
 
 
 def assign_color_to_power_state(powerstate):
+    '''visually represent VM powerstate with a color'''
     if powerstate == 'running':
         return 'green'
     elif powerstate == 'stopped':
@@ -137,14 +135,14 @@ def assign_color_to_power_state(powerstate):
     else: # unknown
         return 'blue'
 
-# draw a grid to delineate fault domains and update domains on the VMSS heatmap
 def draw_grid(originx, originy, row_height, ystart, xend, groupId):
+    '''draw a grid to delineate fault domains and update domains on the VMSS heatmap'''
     vmcanvas.create_text(originx + 180, originy + 10, text='Placement group: ' + groupId)
     # horizontal lines for UDs
     for y in range(5):
         ydelta = y * row_height
         vmcanvas.create_text(originx + 15, originy + ydelta + 50, text='UD ' + str(y))
-        if (y < 4):
+        if y < 4:
             vmcanvas.create_line(originx + 35, originy + ystart + ydelta, originx + 415, \
                 originy + ystart + ydelta)
 
@@ -152,12 +150,12 @@ def draw_grid(originx, originy, row_height, ystart, xend, groupId):
     for x in range(5):
         xdelta = x * 80
         vmcanvas.create_text(originx + 45 + xdelta, originy + 30, text='FD ' + str(x))
-        if (x < 4):
+        if x < 4:
             vmcanvas.create_line(originx + 110 + xdelta, originy + 40, originx + 110 + xdelta, \
                 originy + xend, dash=(4, 2))
 
-# draw a heat map for the VMSS VMs - uses the set_domain_lists() function from the vmss class
 def draw_vms():
+    '''draw a heat map for the VMSS VMs'''
     xval = 35
     yval = 40
     diameter = 10
@@ -170,10 +168,10 @@ def draw_vms():
     current_vmss.set_domain_lists()
     vmcanvas.delete("all")
     if current_vmss.singlePlacementGroup == False:
-        vbar.pack(side=tk.RIGHT,fill=tk.Y)
+        vbar.pack(side=tk.RIGHT, fill=tk.Y)
         vbar.config(command=vmcanvas.yview)
         vmcanvas.config(yscrollcommand=vbar.set)
-        vmcanvas.pack(side=tk.LEFT,expand=True,fill=tk.BOTH)
+        vmcanvas.pack(side=tk.LEFT, expand=True, fill=tk.BOTH)
         fontsize = 4
     else:
         fontsize = 5
@@ -192,34 +190,37 @@ def draw_vms():
             row = matrix[ud][fd] // 5
             xdelta = fd * 80 + (matrix[ud][fd] - row * 5) * 15
             ydelta = ud * row_height + row * 30
-        
+
             # colored circle represents machine power state
-            vmcanvas.create_oval(originx + xval + xdelta, originy + yval + ydelta, \
-                originx + xval + xdelta + diameter, originy + yval + ydelta + diameter, fill=statuscolor)
+            vmcanvas.create_oval(originx + xval + xdelta, originy + yval + ydelta,
+                                 originx + xval + xdelta + diameter,
+                                 originy + yval + ydelta + diameter, fill=statuscolor)
             # print VM ID under each circle
-            vmcanvas.create_text(originx + xval + xdelta + 7, originy + yval + ydelta + 15, \
-                font=("Purisa", fontsize),text=instance_id)
+            vmcanvas.create_text(originx + xval + xdelta + 7, originy + yval + ydelta + 15,
+                                 font=("Purisa", fontsize), text=instance_id)
             matrix[ud][fd] += 1
         originx += 425
         pgcount += 1
         if pgcount % 3 == 0:
             originy += 170
             originx = 0
-    vmcanvas.update_idletasks() # refresh the display 
+    vmcanvas.update_idletasks() # refresh the display
     sleep(0.01) # add a little nap seems to make the display refresh more reliable
 
 def getfds():
+    '''build a list of fault domains'''
     fd = int(selectedfd.get())
     fdinstancelist = []
     # loop through placement groups
     for pg in current_vmss.pg_list:
         for entry in pg['fd_dict'][fd]:
             fdinstancelist.append(entry[0])  # entry[0] is the instance id
-    # build list of UDs
+    # build list of FDs
     return fdinstancelist
 
 
 def startfd():
+    '''start all the VMs in a fault domain'''
     global refresh_thread_running
     fdinstancelist = getfds()
     current_vmss.startvm(json.dumps(fdinstancelist))
@@ -228,6 +229,7 @@ def startfd():
 
 
 def powerfd():
+    '''power off all the VMs in a fault domain'''
     global refresh_thread_running
     fdinstancelist = getfds()
     current_vmss.poweroffvm(json.dumps(fdinstancelist))
@@ -236,6 +238,7 @@ def powerfd():
 
 
 def reimagefd():
+    '''reimage all the VMs in a fault domain'''
     global refresh_thread_running
     fdinstancelist = getfds()
     current_vmss.reimagevm(json.dumps(fdinstancelist))
@@ -244,6 +247,7 @@ def reimagefd():
 
 
 def upgradefd():
+    '''upgrade all the VMs in a fault domain'''
     global refresh_thread_running
     fdinstancelist = getfds()
     current_vmss.upgradevm(json.dumps(fdinstancelist))
@@ -252,6 +256,7 @@ def upgradefd():
 
 
 def rollingupgrade():
+    '''initiate a rolling upgrade to the latest model'''
     batchsize = int(batchtext.get())
     pausetime = int(pausetext.get())
 
@@ -270,6 +275,7 @@ def rollingupgrade():
 
 
 def reimagevm():
+    '''reimage a VM or list of VMs'''
     global refresh_thread_running
     vmid = vmtext.get()
     vmstring = '["' + vmid + '"]'
@@ -279,6 +285,7 @@ def reimagevm():
 
 
 def upgradevm():
+    '''upgrade a VM or list of VMs'''
     global refresh_thread_running
     vmid = vmtext.get()
     vmstring = '["' + vmid + '"]'
@@ -288,6 +295,7 @@ def upgradevm():
 
 
 def deletevm():
+    '''delete a VM or list of VMs'''
     global refresh_thread_running
     vmid = vmtext.get()
     vmstring = '["' + vmid + '"]'
@@ -297,6 +305,7 @@ def deletevm():
 
 
 def startvm():
+    '''start a VM or list of VMs'''
     global refresh_thread_running
     vmid = vmtext.get()
     vmstring = '["' + vmid + '"]'
@@ -306,6 +315,7 @@ def startvm():
 
 
 def restartvm():
+    '''restart a VM or list of VMs'''
     global refresh_thread_running
     vmid = vmtext.get()
     vmstring = '["' + vmid + '"]'
@@ -315,6 +325,7 @@ def restartvm():
 
 
 def deallocvm():
+    '''stop dealloc a VM or list of VMs'''
     global refresh_thread_running
     vmid = vmtext.get()
     vmstring = '["' + vmid + '"]'
@@ -324,6 +335,7 @@ def deallocvm():
 
 
 def poweroffvm():
+    '''power off a VM or list of VMs'''
     global refresh_thread_running
     vmid = vmtext.get()
     vmstring = '["' + vmid + '"]'
@@ -336,50 +348,53 @@ def poweroffvm():
 root = tk.Tk()  # Makes the window
 root.wm_title("Azure VM Scale Set Editor")
 root.geometry(geometry1)
-root.configure(background = frame_bgcolor)
+root.configure(background=frame_bgcolor)
 root.wm_iconbitmap('vmss.ico')
-topframe = tk.Frame(root, bg = frame_bgcolor)
-middleframe = tk.Frame(root, bg = frame_bgcolor)
+topframe = tk.Frame(root, bg=frame_bgcolor)
+middleframe = tk.Frame(root, bg=frame_bgcolor)
 selectedfd = tk.StringVar()
-vmcanvas = tk.Canvas(middleframe, height=canvas_height100, width=canvas_width100, \
-    scrollregion=(0,0,canvas_width1000,canvas_height1000 + 110), bg = canvas_bgcolor)
-vbar=tk.Scrollbar(middleframe,orient=tk.VERTICAL)
-vmframe = tk.Frame(root, bg = frame_bgcolor)
-baseframe = tk.Frame(root, bg = frame_bgcolor)
+vmcanvas = tk.Canvas(middleframe, height=canvas_height100, width=canvas_width100,
+                     scrollregion=(0, 0, canvas_width1000, canvas_height1000 + 110),
+                     bg=canvas_bgcolor)
+vbar = tk.Scrollbar(middleframe, orient=tk.VERTICAL)
+vmframe = tk.Frame(root, bg=frame_bgcolor)
+baseframe = tk.Frame(root, bg=frame_bgcolor)
 topframe.pack(fill=tk.X)
 middleframe.pack(fill=tk.X)
 
 # Rolling upgrade operations - VM frame
-batchsizelabel= tk.Label(vmframe, text='Batch size:', bg = frame_bgcolor)
-batchtext = tk.Entry(vmframe, width=11, bg = canvas_bgcolor)
+batchsizelabel = tk.Label(vmframe, text='Batch size:', bg=frame_bgcolor)
+batchtext = tk.Entry(vmframe, width=11, bg=canvas_bgcolor)
 batchtext.delete(0, tk.END)
 batchtext.insert(0, '1')
-pausetimelabel= tk.Label(vmframe, text='Pause time:', bg = frame_bgcolor)
-pausetext = tk.Entry(vmframe, width=11, bg = canvas_bgcolor)
+pausetimelabel = tk.Label(vmframe, text='Pause time:', bg=frame_bgcolor)
+pausetext = tk.Entry(vmframe, width=11, bg=canvas_bgcolor)
 pausetext.delete(0, tk.END)
 pausetext.insert(0, '0')
-rollingbtn = tk.Button(vmframe, text='Rolling upgrade', command=rollingupgrade, width=btnwidth, bg = btncolor)
+rollingbtn = tk.Button(vmframe, text='Rolling upgrade', command=rollingupgrade, width=btnwidth,
+                       bg=btncolor)
 
 # FD operations - VM frame
-fdlabel = tk.Label(vmframe, text='FD:', bg = frame_bgcolor)
+fdlabel = tk.Label(vmframe, text='FD:', bg=frame_bgcolor)
 fdoption = tk.OptionMenu(vmframe, selectedfd, '0', '1', '2', '3', '4')
-fdoption.config(width=6, bg = btncolor, activebackground = btncolor)
+fdoption.config(width=6, bg=btncolor, activebackground=btncolor)
 fdoption["menu"].config(bg=btncolor)
-reimagebtnfd = tk.Button(vmframe, text='Reimage', command=reimagefd, width=btnwidth, bg = btncolor)
-upgradebtnfd = tk.Button(vmframe, text='Upgrade', command=upgradefd, width=btnwidth, bg = btncolor)
-startbtnfd = tk.Button(vmframe, text='Start', command=startfd, width=btnwidth, bg = btncolor)
-powerbtnfd = tk.Button(vmframe, text='Power off', command=powerfd, width=btnwidth, bg = btncolor)
+reimagebtnfd = tk.Button(vmframe, text='Reimage', command=reimagefd, width=btnwidth, bg=btncolor)
+upgradebtnfd = tk.Button(vmframe, text='Upgrade', command=upgradefd, width=btnwidth, bg=btncolor)
+startbtnfd = tk.Button(vmframe, text='Start', command=startfd, width=btnwidth, bg=btncolor)
+powerbtnfd = tk.Button(vmframe, text='Power off', command=powerfd, width=btnwidth, bg=btncolor)
 
 # VM operations - VM frame
-vmlabel = tk.Label(vmframe, text='VM:', bg = frame_bgcolor)
-vmtext = tk.Entry(vmframe, width=11, bg = canvas_bgcolor)
-reimagebtn = tk.Button(vmframe, text='Reimage', command=reimagevm, width=btnwidth, bg = btncolor)
-vmupgradebtn = tk.Button(vmframe, text='Upgrade', command=upgradevm, width=btnwidth, bg = btncolor)
-vmdeletebtn = tk.Button(vmframe, text='Delete', command=deletevm, width=btnwidth, bg = btncolor)
-vmstartbtn = tk.Button(vmframe, text='Start', command=startvm, width=btnwidth, bg = btncolor)
-vmrestartbtn = tk.Button(vmframe, text='Restart', command=restartvm, width=btnwidth, bg = btncolor)
-vmdeallocbtn = tk.Button(vmframe, text='Dealloc', command=deallocvm, width=btnwidth, bg = btncolor)
-vmpoweroffbtn = tk.Button(vmframe, text='Power off', command=poweroffvm, width=btnwidth, bg = btncolor)
+vmlabel = tk.Label(vmframe, text='VM:', bg=frame_bgcolor)
+vmtext = tk.Entry(vmframe, width=11, bg=canvas_bgcolor)
+reimagebtn = tk.Button(vmframe, text='Reimage', command=reimagevm, width=btnwidth, bg=btncolor)
+vmupgradebtn = tk.Button(vmframe, text='Upgrade', command=upgradevm, width=btnwidth, bg=btncolor)
+vmdeletebtn = tk.Button(vmframe, text='Delete', command=deletevm, width=btnwidth, bg=btncolor)
+vmstartbtn = tk.Button(vmframe, text='Start', command=startvm, width=btnwidth, bg=btncolor)
+vmrestartbtn = tk.Button(vmframe, text='Restart', command=restartvm, width=btnwidth, bg=btncolor)
+vmdeallocbtn = tk.Button(vmframe, text='Dealloc', command=deallocvm, width=btnwidth, bg=btncolor)
+vmpoweroffbtn = tk.Button(vmframe, text='Power off', command=poweroffvm, width=btnwidth,
+                          bg=btncolor)
 vmframe.pack(fill=tk.X)
 baseframe.pack(fill=tk.X)
 
@@ -391,6 +406,7 @@ statustext = tk.Text(baseframe, height=1, width=status_width, bg=canvas_bgcolor)
 
 
 def statusmsg(statusstring):
+    '''output a status message to screen'''
     st_message = strftime("%Y-%m-%d %H:%M:%S ") + str(statusstring)
     if statustext.get(1.0, tk.END):
         statustext.delete(1.0, tk.END)
@@ -398,16 +414,18 @@ def statusmsg(statusstring):
 
 
 def displayvmss(vmssname):
+    '''Display scale set details'''
     global current_vmss
     current_vmss = vmss.vmss(vmssname, sub.vmssdict[vmssname], sub.sub_id, sub.access_token)
     # capacity - row 0
-    locationlabel = tk.Label(topframe, text=current_vmss.location, width=btnwidth, justify=tk.LEFT, bg = frame_bgcolor)
+    locationlabel = tk.Label(topframe, text=current_vmss.location, width=btnwidth, justify=tk.LEFT,
+                             bg=frame_bgcolor)
     locationlabel.grid(row=0, column=1, sticky=tk.W)
-    tk.Label(topframe, text='Capacity: ', bg = frame_bgcolor).grid(row=0, column=2)
+    tk.Label(topframe, text='Capacity: ', bg=frame_bgcolor).grid(row=0, column=2)
     capacitytext.grid(row=0, column=3, sticky=tk.W)
     capacitytext.delete(0, tk.END)
     capacitytext.insert(0, str(current_vmss.capacity))
-    scalebtn = tk.Button(topframe, text="Scale", command=scalevmss, width=btnwidth, bg = btncolor)
+    scalebtn = tk.Button(topframe, text="Scale", command=scalevmss, width=btnwidth, bg=btncolor)
     scalebtn.grid(row=0, column=4, sticky=tk.W)
 
     # VMSS properties - row 1
@@ -415,7 +433,8 @@ def displayvmss(vmssname):
     vmsizetext.delete(0, tk.END)
     vmsizetext.insert(0, str(current_vmss.vmsize))
     vmsizetext.grid(row=1, column=0, sticky=tk.W)
-    offerlabel = tk.Label(topframe, text=current_vmss.offer, width=btnwidth, justify=tk.LEFT, bg = frame_bgcolor)
+    offerlabel = tk.Label(topframe, text=current_vmss.offer, width=btnwidth, justify=tk.LEFT,
+                          bg=frame_bgcolor)
     offerlabel.grid(row=1, column=1, sticky=tk.W)
     skutext.grid(row=1, column=2, sticky=tk.W)
     skutext.delete(0, tk.END)
@@ -423,7 +442,8 @@ def displayvmss(vmssname):
     versiontext.grid(row=1, column=3, sticky=tk.W)
     versiontext.delete(0, tk.END)
     versiontext.insert(0, current_vmss.version)
-    updatebtn = tk.Button(topframe, text='Update model', command=updatevmss, width=btnwidth, bg = btncolor)
+    updatebtn = tk.Button(topframe, text='Update model', command=updatevmss, width=btnwidth,
+                          bg=btncolor)
     updatebtn.grid(row=1, column=4, sticky=tk.W)
 
     # more VMSS properties - row 2
@@ -431,25 +451,32 @@ def displayvmss(vmssname):
         optext = "overprovision: true"
     else:
         optext = "overprovision: false"
-    overprovisionlabel = tk.Label(topframe, text=optext, width=btnwidth, justify=tk.LEFT, bg=frame_bgcolor)
+    overprovisionlabel = tk.Label(topframe, text=optext, width=btnwidth, justify=tk.LEFT,
+                                  bg=frame_bgcolor)
     overprovisionlabel.grid(row=2, column=0, sticky=tk.W)
-    upgradepolicylabel = tk.Label(topframe, text=current_vmss.upgradepolicy + ' upgrade', width=btnwidth, justify=tk.LEFT, bg=frame_bgcolor)
+    upgradepolicylabel = tk.Label(topframe, text=current_vmss.upgradepolicy + ' upgrade',
+                                  width=btnwidth, justify=tk.LEFT, bg=frame_bgcolor)
     upgradepolicylabel.grid(row=2, column=1, sticky=tk.W)
-    adminuserlabel = tk.Label(topframe, text=current_vmss.adminuser, width=btnwidth, justify=tk.LEFT, bg=frame_bgcolor)
+    adminuserlabel = tk.Label(topframe, text=current_vmss.adminuser, width=btnwidth,
+                              justify=tk.LEFT, bg=frame_bgcolor)
     adminuserlabel.grid(row=2, column=2, sticky=tk.W)
-    compnameprefixlabel = tk.Label(topframe, text='Prefix: ' + current_vmss.nameprefix, width=btnwidth, justify=tk.LEFT, bg=frame_bgcolor)
+    compnameprefixlabel = tk.Label(topframe, text='Prefix: ' + current_vmss.nameprefix,
+                                   width=btnwidth, justify=tk.LEFT, bg=frame_bgcolor)
     compnameprefixlabel.grid(row=2, column=3, sticky=tk.W)
 
     # vmss operations - row 3
-    onbtn = tk.Button(topframe, text="Start", command=poweronvmss, width=btnwidth, bg = btncolor)
+    onbtn = tk.Button(topframe, text="Start", command=poweronvmss, width=btnwidth, bg=btncolor)
     onbtn.grid(row=3, column=0, sticky=tk.W)
-    onbtn = tk.Button(topframe, text="Restart", command=restartvmss, width=btnwidth, bg = btncolor)
+    onbtn = tk.Button(topframe, text="Restart", command=restartvmss, width=btnwidth, bg=btncolor)
     onbtn.grid(row=3, column=1, sticky=tk.W)
-    offbtn = tk.Button(topframe, text="Power off", command=poweroffvmss, width=btnwidth, bg = btncolor)
+    offbtn = tk.Button(topframe, text="Power off", command=poweroffvmss, width=btnwidth,
+                       bg=btncolor)
     offbtn.grid(row=3, column=2, sticky=tk.W)
-    deallocbtn = tk.Button(topframe, text="Stop Dealloc", command=deallocvmss, width=btnwidth, bg = btncolor)
+    deallocbtn = tk.Button(topframe, text="Stop Dealloc", command=deallocvmss, width=btnwidth,
+                           bg=btncolor)
     deallocbtn.grid(row=3, column=3, sticky=tk.W)
-    detailsbtn = tk.Button(topframe, text="Show Heatmap", command=vmssdetails, width=btnwidth, bg = btncolor)
+    detailsbtn = tk.Button(topframe, text="Show Heatmap", command=vmssdetails, width=btnwidth,
+                           bg=btncolor)
     detailsbtn.grid(row=3, column=4, sticky=tk.W)
 
     # status line
@@ -458,6 +485,7 @@ def displayvmss(vmssname):
 
 
 def scalevmss():
+    '''scale a scale set in or out'''
     global refresh_thread_running
     newcapacity = int(capacitytext.get())
     current_vmss.scale(newcapacity)
@@ -466,6 +494,7 @@ def scalevmss():
 
 
 def updatevmss():
+    '''Update a scale set to VMSS model'''
     global refresh_thread_running
     newsku = skutext.get()
     newversion = versiontext.get()
@@ -476,18 +505,21 @@ def updatevmss():
 
 
 def poweronvmss():
+    '''Power on a VM scale set'''
     global refresh_thread_running
     current_vmss.poweron()
     statusmsg(current_vmss.status)
     refresh_thread_running = True
 
 def restartvmss():
+    '''Restart' a VM scale set'''
     global refresh_thread_running
     current_vmss.restart()
     statusmsg(current_vmss.status)
     refresh_thread_running = True
 
 def poweroffvmss():
+    '''Power off a VM scale set'''
     global refresh_thread_running
     current_vmss.poweroff()
     statusmsg(current_vmss.status)
@@ -495,6 +527,7 @@ def poweroffvmss():
 
 
 def deallocvmss():
+    '''Stop deallocate on a VM scale set'''
     global refresh_thread_running
     current_vmss.dealloc()
     statusmsg(current_vmss.status)
@@ -502,6 +535,7 @@ def deallocvmss():
 
 
 def vmssdetails():
+    '''Show VM scale set placement details'''
     # VMSS VM canvas - middle frame
     if current_vmss.singlePlacementGroup == True:
         geometry2 = geometry100
@@ -516,7 +550,7 @@ def vmssdetails():
     vmcanvas.pack()
     looping = True
     nextLink = None
-    while (looping is True):
+    while looping is True:
         current_vmss.grow_vm_instance_view(nextLink)
         draw_vms()
         if not 'nextLink' in current_vmss.vm_instance_view:
@@ -564,6 +598,7 @@ if len(vmsslist) > 0:
     vmsslistoption["menu"].config()
     vmsslistoption.grid(row=0, column=0, sticky=tk.W)
 else:
-    messagebox.showwarning("Warning", "Your subscription:\n" + sub.sub_id + "\ncontains no VM Scale Sets")
+    messagebox.showwarning("Warning", "Your subscription:\n" + sub.sub_id +\
+                           "\ncontains no VM Scale Sets")
 
 root.mainloop()
