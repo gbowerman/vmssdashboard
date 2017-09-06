@@ -28,6 +28,7 @@ class subscription():
         vmss_sub_list = azurerm.list_vmss_sub(self.access_token, self.sub_id)
         # build a simple list of VM Scale Set names and a dictionary of VMSS model views
         try:
+            self.vmsslist = []
             for vmss in vmss_sub_list['value']:
                 vmssname = vmss['name']
                 self.vmsslist.append(vmssname)

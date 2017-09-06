@@ -44,10 +44,10 @@ try:
 except FileNotFoundError:
     sys.exit('Error: Expecting vmssconfig.json in current folder')
 
-sub = subscription.subscription(config_data['tenantId'],  config_data['appId'],
-                                config_data['appSecret'],  config_data['subscriptionId'])
+sub = subscription.subscription(config_data['tenantId'], config_data['appId'],
+                                config_data['appSecret'], config_data['subscriptionId'])
 current_vmss = None
-refresh_thread_running=False
+refresh_thread_running = False
 
 def subidkeepalive():
     '''thread to keep access token alive'''
@@ -61,7 +61,7 @@ def refresh_loop():
     global refresh_thread_running
     # refresh large scale sets slower to avoid API throttling
     if current_vmss is not None:
-        if current_vmss.singlePlacementGroup == False:
+        if current_vmss.singlePlacementGroup is False:
             sleep_time = 30
         else:
             sleep_time = 10
@@ -100,7 +100,7 @@ def rolling_upgrade_engine(batchsize, pausetime, vmbyfd_list):
 
         # wait for upgrade to complete
         statusmsg('Batch ' + str(batch_count) + ' upgrade in progress')
-        while refresh_thread_running == True:
+        while refresh_thread_running is True:
             sleep(1)
         print('Batch ' + str(batch_count) + ' complete')
         # wait for pausetime
@@ -159,7 +159,6 @@ def draw_vms():
     xval = 35
     yval = 40
     diameter = 10
-
     row_height = 27
     ystart = 60
     xend = 170
@@ -167,7 +166,7 @@ def draw_vms():
     originy = 0
     current_vmss.set_domain_lists()
     vmcanvas.delete("all")
-    if current_vmss.singlePlacementGroup == False:
+    if current_vmss.singlePlacementGroup is False and len(current_vmss.pg_list) > 1:
         vbar.pack(side=tk.RIGHT, fill=tk.Y)
         vbar.config(command=vmcanvas.yview)
         vmcanvas.config(yscrollcommand=vbar.set)
@@ -265,7 +264,6 @@ def rollingupgrade():
     for fdval in range(5):
         for pg in current_vmss.pg_list:
             vmbyfd_list += pg['fd_dict'][fdval]
-    num_vms_to_upgrade = len(vmbyfd_list) # should = vmss capacity if starting in consistent state
 
     # launch rolling update thread
     rolling_upgrade_thread = threading.Thread(target=rolling_upgrade_engine, \
@@ -463,6 +461,9 @@ def displayvmss(vmssname):
     compnameprefixlabel = tk.Label(topframe, text='Prefix: ' + current_vmss.nameprefix,
                                    width=btnwidth, justify=tk.LEFT, bg=frame_bgcolor)
     compnameprefixlabel.grid(row=2, column=3, sticky=tk.W)
+    rglabel = tk.Label(topframe, text='RG: ' + current_vmss.rgname,
+                       width=btnwidth, justify=tk.LEFT, bg=frame_bgcolor)
+    rglabel.grid(row=2, column=4, sticky=tk.W)
 
     # vmss operations - row 3
     onbtn = tk.Button(topframe, text="Start", command=poweronvmss, width=btnwidth, bg=btncolor)
@@ -535,9 +536,12 @@ def deallocvmss():
 
 
 def vmssdetails():
+    global vmsslist
+    # refresh VMSS model details
+    vmsslist = sub.get_vmss_list()
     '''Show VM scale set placement details'''
     # VMSS VM canvas - middle frame
-    if current_vmss.singlePlacementGroup == True:
+    if current_vmss.singlePlacementGroup == True or len(current_vmss.pg_list) < 2:
         geometry2 = geometry100
         canvas_height = canvas_height100
         canvas_width = canvas_width100

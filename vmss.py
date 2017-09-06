@@ -10,8 +10,8 @@ class vmss():
     def __init__(self, vmssname, vmssmodel, subscription_id, access_token):
         '''class initializtion routine - set basic VMSS properties'''
         self.name = vmssname
-        id = vmssmodel['id']
-        self.rgname = id[id.index('resourceGroups/') + 15:id.index('/providers')]
+        vmssid = vmssmodel['id']
+        self.rgname = vmssid[vmssid.index('resourceGroups/') + 15:vmssid.index('/providers')]
         self.sub_id = subscription_id
         self.access_token = access_token
 
@@ -160,8 +160,8 @@ class vmss():
         # get an instance view list in order to build a heatmap
         if link is None:
             self.vm_instance_view = \
-                azurerm.list_vmss_vm_instance_view_pg(
-                    self.access_token, self.sub_id, self.rgname, self.name)
+                azurerm.list_vmss_vm_instance_view_pg(self.access_token, self.sub_id, self.rgname,
+                                                      self.name)
         else:
             instance_page = azurerm.list_vmss_vm_instance_view_pg(
                 self.access_token, self.sub_id, self.rgname, self.name, link)
@@ -173,44 +173,44 @@ class vmss():
 
     def reimagevm(self, vmstring):
         '''reaimge individual VMs or groups of VMs in a scale set'''
-        result = azurerm.reimage_vmss_vms(
-            self.access_token, self.sub_id, self.rgname, self.name, vmstring)
+        result = azurerm.reimage_vmss_vms(self.access_token, self.sub_id, self.rgname, self.name,
+                                          vmstring)
         self.status = result
 
     def upgradevm(self, vmstring):
         '''upgrade individual VMs or groups of VMs in a scale set'''
-        result = azurerm.upgrade_vmss_vms(
-            self.access_token, self.sub_id, self.rgname, self.name, vmstring)
+        result = azurerm.upgrade_vmss_vms(self.access_token, self.sub_id, self.rgname, self.name,
+                                          vmstring)
         self.status = result
 
     def deletevm(self, vmstring):
         '''delete individual VMs or groups of VMs in a scale set'''
-        result = azurerm.delete_vmss_vms(
-            self.access_token, self.sub_id, self.rgname, self.name, vmstring)
+        result = azurerm.delete_vmss_vms(self.access_token, self.sub_id, self.rgname, self.name,
+                                         vmstring)
         self.status = result
 
     def startvm(self, vmstring):
         '''start individual VMs or groups of VMs in a scale set'''
-        result = azurerm.start_vmss_vms(
-            self.access_token, self.sub_id, self.rgname, self.name, vmstring)
+        result = azurerm.start_vmss_vms(self.access_token, self.sub_id, self.rgname, self.name,
+                                        vmstring)
         self.status = result
 
     def restartvm(self, vmstring):
         '''restart individual VMs or groups of VMs in a scale set'''
-        result = azurerm.restart_vmss_vms(
-            self.access_token, self.sub_id, self.rgname, self.name, vmstring)
+        result = azurerm.restart_vmss_vms(self.access_token, self.sub_id, self.rgname, self.name,
+                                          vmstring)
         self.status = result
 
     def deallocvm(self, vmstring):
         '''dealloc individual VMs or groups of VMs in a scale set'''
-        result = azurerm.stopdealloc_vmss_vms(
-            self.access_token, self.sub_id, self.rgname, self.name, vmstring)
+        result = azurerm.stopdealloc_vmss_vms(self.access_token, self.sub_id, self.rgname,
+                                              self.name, vmstring)
         self.status = result
 
     def poweroffvm(self, vmstring):
         '''power off individual VMs or groups of VMs in a scale set'''
-        result = azurerm.poweroff_vmss_vms(
-            self.access_token, self.sub_id, self.rgname, self.name, vmstring)
+        result = azurerm.poweroff_vmss_vms(self.access_token, self.sub_id, self.rgname, self.name,
+                                           vmstring)
         self.status = result
 
     def get_power_state(self, statuses):
@@ -235,6 +235,7 @@ class vmss():
         fd_dict = {f: [] for f in range(5)}
         ud_dict = {u: [] for u in range(5)}
         vm_list = []
+        self.pg_list = []
         for instance in self.vm_instance_view['value']:
             try:
                 # when group Id changes, load fd/ud/vm dictionaries into the placement group list
