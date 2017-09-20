@@ -1,11 +1,11 @@
-'''vmss.py - class of basic Azure VM scale set operations'''
+'''vmssz.py - class of basic Azure VM scale set operations, without UDs, with zones'''
 import json
 
 import azurerm
 
 
-class vmss():
-    '''vmss class - encapsulates the model and status of a VM scale set'''
+class VMSSZ():
+    '''VMSSZ class - encapsulates the model and status of azonal VM scale set'''
 
     def __init__(self, vmssname, vmssmodel, subscription_id, access_token):
         '''class initializtion routine - set basic VMSS properties'''
@@ -24,8 +24,9 @@ class vmss():
             vmssmodel['properties']['virtualMachineProfile']['osProfile']['computerNamePrefix']
         self.overprovision = vmssmodel['properties']['overprovision']
         self.vm_instance_view = None
-        self.vm_model_view = None # for now only initialized in group_by_zone()
+        self.vm_model_view = None
         self.pg_list = []
+        self.zones = []
         if 'zones' in vmssmodel:
             self.zonal = True
         else:
@@ -154,26 +155,16 @@ class vmss():
 
     def init_vm_instance_view(self):
         '''get the VMSS instance view and set the class property'''
-        # get an instance view list in order to build a heatmap
+        # get an instance view list in order to build FD heatmap
         self.vm_instance_view = \
             azurerm.list_vmss_vm_instance_view(self.access_token, self.sub_id, self.rgname,
                                                self.name)
 
-    def grow_vm_instance_view(self, link=None):
-        '''grow the VMSS instance view by one page'''
-        # get an instance view list in order to build a heatmap
-        if link is None:
-            self.vm_instance_view = \
-                azurerm.list_vmss_vm_instance_view_pg(self.access_token, self.sub_id, self.rgname,
-                                                      self.name)
-        else:
-            instance_page = azurerm.list_vmss_vm_instance_view_pg(self.access_token, self.sub_id,
-                                                                  self.rgname, self.name, link)
-            if 'nextLink' in instance_page:
-                self.vm_instance_view['nextLink'] = instance_page['nextLink']
-            else:
-                del self.vm_instance_view['nextLink']
-            self.vm_instance_view['value'].extend(instance_page['value'])
+    def init_vm_model_view(self):
+        '''get the VMSS instance view and set the class property'''
+        # get a model view list in order to build a zones heatmap
+        self.vm_model_view = \
+            azurerm.list_vmss_vms(self.access_token, self.sub_id, self.rgname, self.name)
 
     def reimagevm(self, vmstring):
         '''reaimge individual VMs or groups of VMs in a scale set'''
@@ -223,48 +214,40 @@ class vmss():
             if status['code'].startswith('Power'):
                 return status['code'][11:]
 
-    def set_domain_lists(self):
-        '''create lists of VMs in the scale set by fault domain, update domain, and all-up'''
-        # sort the list of VM instance views by group id
-        if self.singlePlacementGroup is False:
-            self.vm_instance_view['value'] = \
-                sorted(self.vm_instance_view['value'],
-                       key=lambda k: k['properties']['instanceView']['placementGroupId'])
-            last_group_id = \
-                self.vm_instance_view['value'][0]['properties']['instanceView']['placementGroupId']
-        else:
-            last_group_id = "single group"
-        # now create a list of group id + FD/UD list objects
-        # each time group id changes append a new value to the list
-        fd_dict = {f: [] for f in range(5)}
-        ud_dict = {u: [] for u in range(5)}
-        vm_list = []
-        self.pg_list = []
-        for instance in self.vm_instance_view['value']:
-            try:
-                # when group Id changes, load fd/ud/vm dictionaries into the placement group list
-                # may need to change this to copy by value
-                # debug: print(json.dumps(instance))
-                if self.singlePlacementGroup is False:
-                    if instance['properties']['instanceView']['placementGroupId'] != last_group_id:
-                        self.pg_list.append(
-                            {'guid': last_group_id, 'fd_dict': fd_dict, 'ud_dict': ud_dict,
-                             'vm_list': vm_list})
-                        fd_dict = {f: [] for f in range(5)}
-                        ud_dict = {u: [] for u in range(5)}
-                        vm_list = []
-                        last_group_id = instance['properties']['instanceView']['placementGroupId']
-                instanceId = instance['instanceId']
-                ud = instance['properties']['instanceView']['platformUpdateDomain']
-                fd = instance['properties']['instanceView']['platformFaultDomain']
-                power_state = self.get_power_state(
-                    instance['properties']['instanceView']['statuses'])
-                ud_dict[ud].append([instanceId, power_state])
-                fd_dict[fd].append([instanceId, power_state])
-                vm_list.append([instanceId, fd, ud, power_state])
-            except KeyError:
-                print('KeyError - UD/FD may not be assigned yet. Instance view: '\
-                    + json.dumps(instance))
-                break
-        self.pg_list.append(
-            {'guid': last_group_id, 'fd_dict': fd_dict, 'ud_dict': ud_dict, 'vm_list': vm_list})
+    def init_zones(self):
+        '''create a structure to represent VMs by zone and FD
+           - ignore placement groups for now.
+        '''
+        self.zones = []
+        for zone_id in range(1, 4):
+            zone = {'zone': zone_id}
+            fds = []
+            for fd_num in range(5):
+                fault_domain = {'fd': fd_num, 'vms': []}
+                fds.append(fault_domain)
+            zone['fds'] = fds
+            self.zones.append(zone)
+
+    def init_vm_details(self):
+        '''Populate the self.zones structure
+           - with a physically ordered representation of the VMs in a scale set.
+        '''
+        self.init_zones()
+        # get the model view
+        self.vm_model_view = azurerm.list_vmss_vms(self.access_token, self.sub_id, self.rgname,
+                                                   self.name)
+        # get the instance view
+        self.vm_instance_view = azurerm.list_vmss_vm_instance_view(self.access_token, self.sub_id,
+                                                                   self.rgname, self.name)
+        # do a loop through the number of VMs and populate VMs properties in the zones structure
+        # make an assumption that len(vm_model_view) == len(vm_instance_view)
+        #   - true if not actively scaling
+        for idx in range(len(self.vm_model_view['value'])):
+            vm_id = self.vm_model_view['value'][idx]['instanceId']
+            zone_num = self.vm_model_view['value'][idx]['zones'][0]
+            power_state = self.get_power_state(
+                self.vm_instance_view['value'][idx]['properties']['instanceView']['statuses'])
+            fault_domain = self.vm_instance_view['value'][idx]['properties']['instanceView']['platformFaultDomain']
+            vm_data = {'vmid': vm_id, 'power_state': power_state}
+            self.zones[int(zone_num)-1]['fds'][fault_domain]['vms'].append(vm_data)
+        #print(json.dumps(self.zones))
