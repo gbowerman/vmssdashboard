@@ -82,6 +82,7 @@ class VMSSZ():
             self.version = vmssmodel['properties']['virtualMachineProfile']['storageProfile']['osDisk']['image']['uri']
         self.provisioningState = vmssmodel['properties']['provisioningState']
         self.status = self.provisioningState
+        self.init_vm_details()
 
     def update_token(self, access_token):
         '''update the token property'''

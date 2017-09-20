@@ -59,21 +59,15 @@ def subidkeepalive():
 def refresh_loop():
     '''thread to refresh details until provisioning is complete'''
     global refresh_thread_running
-    # refresh large scale sets slower to avoid API throttling
-    if current_vmss is not None:
-        if current_vmss.singlePlacementGroup is False:
-            sleep_time = 30
-        else:
-            sleep_time = 10
-
-        while True:
-            while refresh_thread_running is True:
-                current_vmss.refresh_model()
-                if current_vmss.status == 'Succeeded' or current_vmss.status == 'Failed':
-                    refresh_thread_running = False
-                sleep(sleep_time)
-                vmssdetails()
-            sleep(10)
+    sleep_time = 10
+    while True:
+        while refresh_thread_running is True:
+            current_vmss.refresh_model()
+            if current_vmss.status == 'Succeeded' or current_vmss.status == 'Failed':
+                refresh_thread_running = False
+            sleep(sleep_time)
+            vmssdetails()
+        sleep(10)
 
 
 # start timer thread
@@ -160,39 +154,50 @@ def draw_vms():
     vmcanvas.update_idletasks() # refresh the display
     sleep(0.01) # add a little nap seems to make the display refresh more reliable
 
+def getzones():
+    '''build a list of vm ids by zone'''
+    zone_num = int(selectedz.get())
+    zinstancelist = []
+    # loop through fds
+    for fdomain in current_vmss.zones[int(zone_num)-1]['fds']:
+        for vm_info in fdomain['vms']:
+            zinstancelist.append(vm_info['vmid'])
+    # build list of VM IDs in the zone
+    return zinstancelist
 
-def startfd():
+
+def startz():
     '''start all the VMs in a fault domain'''
     global refresh_thread_running
-    fdinstancelist = getfds()
-    current_vmss.startvm(json.dumps(fdinstancelist))
+    zinstancelist = getzones()
+    current_vmss.startvm(json.dumps(zinstancelist))
     statusmsg(current_vmss.status)
     refresh_thread_running = True
 
 
-def powerfd():
+def powerz():
     '''power off all the VMs in a fault domain'''
     global refresh_thread_running
-    fdinstancelist = getfds()
-    current_vmss.poweroffvm(json.dumps(fdinstancelist))
+    zinstancelist = getzones()
+    current_vmss.poweroffvm(json.dumps(zinstancelist))
     statusmsg(current_vmss.status)
     refresh_thread_running = True
 
 
-def reimagefd():
+def reimagez():
     '''reimage all the VMs in a fault domain'''
     global refresh_thread_running
-    fdinstancelist = getfds()
-    current_vmss.reimagevm(json.dumps(fdinstancelist))
+    zinstancelist = getzones()
+    current_vmss.reimagevm(json.dumps(zinstancelist))
     statusmsg(current_vmss.status)
     refresh_thread_running = True
 
 
-def upgradefd():
+def upgradez():
     '''upgrade all the VMs in a fault domain'''
     global refresh_thread_running
-    fdinstancelist = getfds()
-    current_vmss.upgradevm(json.dumps(fdinstancelist))
+    zinstancelist = getzones()
+    current_vmss.upgradevm(json.dumps(zinstancelist))
     statusmsg(current_vmss.status)
     refresh_thread_running = True
 
@@ -275,7 +280,7 @@ root.configure(background=frame_bgcolor)
 root.wm_iconbitmap('vmss.ico')
 topframe = tk.Frame(root, bg=frame_bgcolor)
 middleframe = tk.Frame(root, bg=frame_bgcolor)
-selectedfd = tk.StringVar()
+selectedz = tk.StringVar()
 vmcanvas = tk.Canvas(middleframe, height=canvas_height100, width=canvas_width100,
                      scrollregion=(0, 0, canvas_width1000, canvas_height1000 + 110),
                      bg=canvas_bgcolor)
@@ -285,15 +290,15 @@ baseframe = tk.Frame(root, bg=frame_bgcolor)
 topframe.pack(fill=tk.X)
 middleframe.pack(fill=tk.X)
 
-# FD operations - VM frame
-fdlabel = tk.Label(vmframe, text='FD:', bg=frame_bgcolor)
-fdoption = tk.OptionMenu(vmframe, selectedfd, '0', '1', '2', '3', '4')
-fdoption.config(width=6, bg=btncolor, activebackground=btncolor)
-fdoption["menu"].config(bg=btncolor)
-reimagebtnfd = tk.Button(vmframe, text='Reimage', command=reimagefd, width=btnwidth, bg=btncolor)
-upgradebtnfd = tk.Button(vmframe, text='Upgrade', command=upgradefd, width=btnwidth, bg=btncolor)
-startbtnfd = tk.Button(vmframe, text='Start', command=startfd, width=btnwidth, bg=btncolor)
-powerbtnfd = tk.Button(vmframe, text='Power off', command=powerfd, width=btnwidth, bg=btncolor)
+# Zone operations - VM frame
+zlabel = tk.Label(vmframe, text='Zone:', bg=frame_bgcolor)
+zoption = tk.OptionMenu(vmframe, selectedz, '1', '2', '3')
+zoption.config(width=6, bg=btncolor, activebackground=btncolor)
+zoption["menu"].config(bg=btncolor)
+reimagebtnz = tk.Button(vmframe, text='Reimage', command=reimagez, width=btnwidth, bg=btncolor)
+upgradebtnz = tk.Button(vmframe, text='Upgrade', command=upgradez, width=btnwidth, bg=btncolor)
+startbtnz = tk.Button(vmframe, text='Start', command=startz, width=btnwidth, bg=btncolor)
+powerbtnz = tk.Button(vmframe, text='Power off', command=powerz, width=btnwidth, bg=btncolor)
 
 # VM operations - VM frame
 vmlabel = tk.Label(vmframe, text='VM:', bg=frame_bgcolor)
@@ -465,12 +470,12 @@ def vmssdetails():
     draw_vms()
 
     # draw VM frame components
-    fdlabel.grid(row=1, column=0, sticky=tk.W)
-    fdoption.grid(row=1, column=1, sticky=tk.W)
-    reimagebtnfd.grid(row=1, column=2, sticky=tk.W)
-    upgradebtnfd.grid(row=1, column=3, sticky=tk.W)
-    startbtnfd.grid(row=1, column=4, sticky=tk.W)
-    powerbtnfd.grid(row=1, column=5, sticky=tk.W)
+    zlabel.grid(row=1, column=0, sticky=tk.W)
+    zoption.grid(row=1, column=1, sticky=tk.W)
+    reimagebtnz.grid(row=1, column=2, sticky=tk.W)
+    upgradebtnz.grid(row=1, column=3, sticky=tk.W)
+    startbtnz.grid(row=1, column=4, sticky=tk.W)
+    powerbtnz.grid(row=1, column=5, sticky=tk.W)
     vmlabel.grid(row=2, column=0, sticky=tk.W)
     vmtext.grid(row=2, column=1, sticky=tk.W)
     reimagebtn.grid(row=2, column=2, sticky=tk.W)
@@ -489,7 +494,7 @@ vmsslist = sub.get_vmss_list()
 selectedvmss = tk.StringVar()
 if len(vmsslist) > 0:
     selectedvmss.set(vmsslist[0])
-    selectedfd.set('0')
+    selectedz.set('1')
     displayvmss(vmsslist[0])
     # create top level GUI components
     vmsslistoption = tk.OptionMenu(topframe, selectedvmss, *vmsslist, command=displayvmss)
