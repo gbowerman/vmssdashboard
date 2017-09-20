@@ -5,7 +5,7 @@ import azurerm
 
 
 class VMSSZ():
-    '''VMSSZ class - encapsulates the model and status of azonal VM scale set'''
+    '''VMSSZ class - encapsulates the model and status of a zone redundant VM scale set'''
 
     def __init__(self, vmssname, vmssmodel, subscription_id, access_token):
         '''class initializtion routine - set basic VMSS properties'''
