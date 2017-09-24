@@ -24,8 +24,8 @@ if os.name == 'posix':  # Mac OS
     canvas_width1000 = 1300
 else:
     geometry1 = '540x128'
-    geometry100 = '540x440'
-    geometry_wide = '1230x440'
+    geometry100 = '540x410'
+    geometry_wide = '1230x410'
     list_width = 8
     status_width = 67
     canvas_width100 = 520
@@ -59,15 +59,17 @@ def subidkeepalive():
 def refresh_loop():
     '''thread to refresh details until provisioning is complete'''
     global refresh_thread_running
-    sleep_time = 10
+    sleep_time = 5
     while True:
         while refresh_thread_running is True:
             current_vmss.refresh_model()
-            if current_vmss.status == 'Succeeded' or current_vmss.status == 'Failed':
+            # for demoing small scale sets - dont' switch off refresh
+            # if current_vmss.status == 'Succeeded' or current_vmss.status == 'Failed':
+            if current_vmss.status == 'Failed':
                 refresh_thread_running = False
             sleep(sleep_time)
             vmssdetails()
-        sleep(10)
+        sleep(sleep_time)
 
 
 # start timer thread
@@ -332,6 +334,7 @@ def statusmsg(statusstring):
 def displayvmss(vmssname):
     '''Display scale set details'''
     global current_vmss
+    global refresh_thread_running
     current_vmss = vmssz.VMSSZ(vmssname, sub.vmssdict[vmssname], sub.sub_id, sub.access_token)
     # capacity - row 0
     locationlabel = tk.Label(topframe, text=current_vmss.location, width=btnwidth, justify=tk.LEFT,
@@ -401,6 +404,8 @@ def displayvmss(vmssname):
     # status line
     statustext.pack(side=tk.LEFT)
     statusmsg(current_vmss.status)
+    if current_vmss.status != 'Failed':
+        refresh_thread_running = True
 
 
 def scalevmss():
